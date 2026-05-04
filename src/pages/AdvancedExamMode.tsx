@@ -10,7 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, Flame, Shield, Timer, RotateCcw, Trophy, Hash, Type as TypeIcon, KeyRound } from "lucide-react";
+import {
+  AlertTriangle, Flame, Shield, Timer, RotateCcw, Trophy, Hash,
+  Type as TypeIcon, KeyRound, ArrowRight, CheckCircle2,
+} from "lucide-react";
 import {
   getRandomParagraph,
   getPoolSize,
@@ -26,15 +29,13 @@ const DIFFICULTY_META: Record<Difficulty, { label: string; color: string; icon: 
   extreme: { label: "Extreme", color: "bg-red-500/10 text-red-600 border-red-500/30", icon: AlertTriangle, desc: "BSF / SSC high-level · stress mode" },
 };
 
-interface Mistakes {
-  symbols: number;
-  numbers: number;
-  caps: number;
-  letters: number;
-}
+interface Mistakes { symbols: number; numbers: number; caps: number; letters: number; }
 
 const isSymbol = (c: string) => /[^A-Za-z0-9\s]/.test(c);
 const isDigit = (c: string) => /[0-9]/.test(c);
+
+// Append a fresh paragraph when user is approaching end of current text.
+const APPEND_THRESHOLD = 200; // chars remaining
 
 const AdvancedExamMode = () => {
   const [difficulty, setDifficulty] = useState<Difficulty>("hard");
@@ -42,59 +43,27 @@ const AdvancedExamMode = () => {
   const [examModeOn, setExamModeOn] = useState(false);
   const [noBackspace, setNoBackspace] = useState(false);
   const [duration, setDuration] = useState(5); // minutes
-  const [paragraph, setParagraph] = useState<AdvancedParagraph | null>(null);
+
+  const [text, setText] = useState("");
+  const [currentTags, setCurrentTags] = useState<{ difficulty: Difficulty; exam: ExamTag } | null>(null);
   const [userInput, setUserInput] = useState("");
   const [startTime, setStartTime] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [finished, setFinished] = useState(false);
+  const [sessionCount, setSessionCount] = useState(1);
+  const [finalStats, setFinalStats] = useState<ReturnType<typeof computeStats> | null>(null);
+
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const finishedRef = useRef(false);
 
-  useEffect(() => {
-    document.title = "Advanced Exam Mode — SSC, BSF, CPCT Typing Practice";
-    loadNew();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEffect(() => { document.title = "Advanced Exam Mode — SSC, BSF, CPCT Typing Practice"; }, []);
 
-  // Reload on filter change
-  useEffect(() => {
-    loadNew();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [difficulty, exam]);
-
-  const loadNew = useCallback(() => {
-    const p = getRandomParagraph(difficulty, exam === "any" ? undefined : exam);
-    setParagraph(p);
-    setUserInput("");
-    setStartTime(null);
-    setFinished(false);
-    setTimeLeft(examModeOn ? duration * 60 : null);
-    setTimeout(() => inputRef.current?.focus(), 50);
-  }, [difficulty, exam, examModeOn, duration]);
-
-  // Timer
-  useEffect(() => {
-    if (!examModeOn || !startTime || finished) return;
-    const id = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - startTime) / 1000);
-      const left = duration * 60 - elapsed;
-      if (left <= 0) {
-        setTimeLeft(0);
-        setFinished(true);
-        clearInterval(id);
-      } else setTimeLeft(left);
-    }, 250);
-    return () => clearInterval(id);
-  }, [examModeOn, startTime, finished, duration]);
-
-  const text = paragraph?.text || "";
-
-  // Stats
-  const calcStats = () => {
+  // Compute stats from given input/text/start
+  function computeStats(input: string, full: string, start: number | null) {
     let errors = 0;
     const m: Mistakes = { symbols: 0, numbers: 0, caps: 0, letters: 0 };
-    for (let i = 0; i < userInput.length; i++) {
-      const u = userInput[i];
-      const t = text[i];
+    for (let i = 0; i < input.length; i++) {
+      const u = input[i]; const t = full[i];
       if (u !== t) {
         errors++;
         if (t && isSymbol(t)) m.symbols++;
@@ -103,37 +72,96 @@ const AdvancedExamMode = () => {
         else m.letters++;
       }
     }
-    const minutes = startTime ? (Date.now() - startTime) / 60000 : 0;
-    const words = userInput.trim().split(/\s+/).filter(Boolean).length;
+    const minutes = start ? (Date.now() - start) / 60000 : 0;
+    const words = input.trim().split(/\s+/).filter(Boolean).length;
     const wpm = minutes > 0 ? Math.round(words / minutes) : 0;
-    const accuracy = userInput.length ? Math.max(0, Math.round(((userInput.length - errors) / userInput.length) * 100)) : 100;
-    return { wpm, accuracy, errors, mistakes: m, words, minutes };
-  };
+    const cpm = minutes > 0 ? Math.round(input.length / minutes) : 0;
+    const accuracy = input.length ? Math.max(0, Math.round(((input.length - errors) / input.length) * 100)) : 100;
+    return { wpm, cpm, accuracy, errors, mistakes: m, words, minutes };
+  }
 
-  const stats = calcStats();
+  const startFresh = useCallback((opts?: { keepSession?: boolean }) => {
+    const p = getRandomParagraph(difficulty, exam === "any" ? undefined : exam);
+    setText(p.text);
+    setCurrentTags({ difficulty: p.difficulty, exam: p.exam });
+    setUserInput("");
+    setStartTime(null);
+    setFinished(false);
+    finishedRef.current = false;
+    setFinalStats(null);
+    setTimeLeft(examModeOn ? duration * 60 : null);
+    if (!opts?.keepSession) setSessionCount(1);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  }, [difficulty, exam, examModeOn, duration]);
+
+  // Initial + on filter/timer change
+  useEffect(() => { startFresh(); }, [startFresh]);
+
+  // Auto-extend paragraph so user never runs out before timer ends
+  useEffect(() => {
+    if (finished || !text) return;
+    if (text.length - userInput.length < APPEND_THRESHOLD) {
+      const next = getRandomParagraph(
+        currentTags?.difficulty || difficulty,
+        exam === "any" ? undefined : exam
+      );
+      setText((t) => t + " " + next.text);
+    }
+  }, [userInput, text, finished, currentTags, difficulty, exam]);
+
+  const finishTest = useCallback(() => {
+    if (finishedRef.current) return;
+    finishedRef.current = true;
+    setFinished(true);
+    const s = computeStats(userInput, text, startTime);
+    setFinalStats(s);
+    saveTestRecord({
+      type: "exam",
+      wpm: s.wpm,
+      cpm: s.cpm,
+      accuracy: s.accuracy,
+      errors: s.errors,
+      timeSpent: Math.round(s.minutes * 60),
+      title: `Advanced ${difficulty.toUpperCase()}${exam !== "any" ? " (" + exam.toUpperCase() + ")" : ""}`,
+    });
+  }, [userInput, text, startTime, difficulty, exam]);
+
+  // Timer
+  useEffect(() => {
+    if (!examModeOn || !startTime || finished) return;
+    const id = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const left = duration * 60 - elapsed;
+      if (left <= 0) { setTimeLeft(0); finishTest(); clearInterval(id); }
+      else setTimeLeft(left);
+    }, 250);
+    return () => clearInterval(id);
+  }, [examModeOn, startTime, finished, duration, finishTest]);
+
+  const liveStats = computeStats(userInput, text, startTime);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (finished) return;
     let val = e.target.value;
-    if (noBackspace && val.length < userInput.length) return; // block backspace
+    // Hard guard: never let input shrink when no-backspace is on
+    if (noBackspace && val.length < userInput.length) return;
     if (val.length > text.length) val = val.slice(0, text.length);
     if (!startTime && val.length > 0) setStartTime(Date.now());
     setUserInput(val);
-    if (val.length === text.length) finishTest();
   };
 
-  const finishTest = () => {
-    setFinished(true);
-    const s = calcStats();
-    saveTestRecord({
-      type: "exam",
-      wpm: s.wpm,
-      cpm: Math.round(userInput.length / Math.max(s.minutes, 0.01)),
-      accuracy: s.accuracy,
-      errors: s.errors,
-      timeSpent: Math.round(s.minutes * 60),
-      title: `Advanced ${difficulty.toUpperCase()} ${exam !== "any" ? "(" + exam.toUpperCase() + ")" : ""}`,
-    });
+  // Block Backspace/Delete keys at the keydown level when toggle on
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (finished) { e.preventDefault(); return; }
+    if (noBackspace && (e.key === "Backspace" || e.key === "Delete")) {
+      e.preventDefault();
+    }
+  };
+
+  const onRetry = () => startFresh({ keepSession: true });
+  const onNextExam = () => {
+    setSessionCount((c) => c + 1);
+    startFresh({ keepSession: true });
   };
 
   const renderText = () =>
@@ -141,36 +169,114 @@ const AdvancedExamMode = () => {
       let cls = "text-muted-foreground";
       if (i < userInput.length) cls = userInput[i] === ch ? "text-success" : "text-destructive bg-destructive/15";
       else if (i === userInput.length) cls = "text-foreground bg-primary/20 underline";
-      return (
-        <span key={i} className={cls + " transition-colors"}>
-          {ch}
-        </span>
-      );
+      return <span key={i} className={cls + " transition-colors"}>{ch}</span>;
     });
 
   const fmtTime = (s: number | null) => {
     if (s === null) return "--:--";
-    const m = Math.floor(s / 60);
-    const ss = s % 60;
+    const m = Math.floor(s / 60); const ss = s % 60;
     return `${String(m).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
   };
 
   const Icon = DIFFICULTY_META[difficulty].icon;
 
+  // ---------- RESULT VIEW ----------
+  if (finished && finalStats) {
+    const s = finalStats;
+    const totalMistakes = s.mistakes.symbols + s.mistakes.numbers + s.mistakes.caps + s.mistakes.letters || 1;
+    const bar = (n: number) => Math.round((n / totalMistakes) * 100);
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <AdLayout>
+          <main className="container mx-auto px-4 py-8 flex-1">
+            <div className="max-w-3xl mx-auto">
+              <Card className="border-2 border-primary/30 overflow-hidden">
+                <div className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-600 text-white p-6 text-center">
+                  <CheckCircle2 className="h-12 w-12 mx-auto mb-2" />
+                  <h2 className="text-3xl font-bold">Exam Complete!</h2>
+                  <p className="opacity-90 mt-1">
+                    {DIFFICULTY_META[difficulty].label} · Session #{sessionCount}
+                  </p>
+                </div>
+                <CardContent className="p-6 space-y-6">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="rounded-lg border p-4 text-center">
+                      <p className="text-xs text-muted-foreground">WPM</p>
+                      <p className="text-3xl font-bold text-primary">{s.wpm}</p>
+                    </div>
+                    <div className="rounded-lg border p-4 text-center">
+                      <p className="text-xs text-muted-foreground">Accuracy</p>
+                      <p className="text-3xl font-bold text-success">{s.accuracy}%</p>
+                    </div>
+                    <div className="rounded-lg border p-4 text-center">
+                      <p className="text-xs text-muted-foreground">Errors</p>
+                      <p className="text-3xl font-bold text-destructive">{s.errors}</p>
+                    </div>
+                    <div className="rounded-lg border p-4 text-center">
+                      <p className="text-xs text-muted-foreground">Time</p>
+                      <p className="text-3xl font-bold font-mono">{fmtTime(Math.round(s.minutes * 60))}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold mb-3 flex items-center gap-2">
+                      <Trophy className="h-4 w-4" /> Mistake Heatmap
+                    </h3>
+                    <div className="space-y-3">
+                      {[
+                        { label: "Symbols", icon: Hash, val: s.mistakes.symbols, color: "bg-red-500" },
+                        { label: "Numbers", icon: () => <span className="text-xs font-bold">123</span>, val: s.mistakes.numbers, color: "bg-orange-500" },
+                        { label: "Capitals", icon: TypeIcon, val: s.mistakes.caps, color: "bg-yellow-500" },
+                        { label: "Letters", icon: () => <span className="text-xs font-bold">Aa</span>, val: s.mistakes.letters, color: "bg-blue-500" },
+                      ].map((row) => {
+                        const Ico: any = row.icon;
+                        return (
+                          <div key={row.label}>
+                            <div className="flex items-center justify-between text-sm mb-1">
+                              <span className="flex items-center gap-2"><Ico className="h-3 w-3" /> {row.label}</span>
+                              <span className="font-semibold">{row.val}</span>
+                            </div>
+                            <div className="h-2 w-full rounded bg-muted overflow-hidden">
+                              <div className={`h-full ${row.color} transition-all`} style={{ width: `${bar(row.val)}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                    <Button size="lg" className="flex-1 gap-2" onClick={onRetry}>
+                      <RotateCcw className="h-5 w-5" /> Retry
+                    </Button>
+                    <Button size="lg" variant="secondary" className="flex-1 gap-2" onClick={onNextExam}>
+                      Next Exam <ArrowRight className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </main>
+          <Footer />
+        </AdLayout>
+      </div>
+    );
+  }
+
+  // ---------- ACTIVE EXAM VIEW ----------
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <AdLayout>
         <main className="container mx-auto px-4 py-8 flex-1">
-          {/* Header */}
           <div className="text-center mb-8">
             <Badge className="mb-3 bg-gradient-to-r from-orange-500 to-red-500 text-white border-0">
               🔥 NEW · Advanced Exam Mode
             </Badge>
             <h1 className="text-4xl font-bold mb-2">Advanced Exam Typing Practice</h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Real exam-pattern paragraphs with symbols, numbers & stress elements. Pool of {getPoolSize()}+ dynamic
-              paragraphs — no two sessions are the same.
+              Auto-extending paragraphs · {getPoolSize()}+ dynamic variations · session #{sessionCount}
             </p>
           </div>
 
@@ -178,20 +284,17 @@ const AdvancedExamMode = () => {
           <Card className="mb-6">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Icon className="h-5 w-5" />
-                Configure Your Drill
+                <Icon className="h-5 w-5" /> Configure Your Drill
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <Tabs value={difficulty} onValueChange={(v) => setDifficulty(v as Difficulty)}>
                 <TabsList className="grid grid-cols-3 w-full">
                   {(["medium", "hard", "extreme"] as Difficulty[]).map((d) => {
-                    const M = DIFFICULTY_META[d];
-                    const DI = M.icon;
+                    const M = DIFFICULTY_META[d]; const DI = M.icon;
                     return (
                       <TabsTrigger key={d} value={d} className="gap-2">
-                        <DI className="h-4 w-4" />
-                        {M.label}
+                        <DI className="h-4 w-4" /> {M.label}
                       </TabsTrigger>
                     );
                   })}
@@ -247,29 +350,19 @@ const AdvancedExamMode = () => {
 
           {/* Live Stats */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
-            <Card className="p-3 text-center">
-              <p className="text-xs text-muted-foreground">WPM</p>
-              <p className="text-2xl font-bold">{stats.wpm}</p>
-            </Card>
-            <Card className="p-3 text-center">
-              <p className="text-xs text-muted-foreground">Accuracy</p>
-              <p className="text-2xl font-bold text-success">{stats.accuracy}%</p>
-            </Card>
-            <Card className="p-3 text-center">
-              <p className="text-xs text-muted-foreground">Errors</p>
-              <p className="text-2xl font-bold text-destructive">{stats.errors}</p>
-            </Card>
-            <Card className="p-3 text-center">
-              <p className="text-xs text-muted-foreground">Progress</p>
-              <p className="text-2xl font-bold">{Math.round((userInput.length / Math.max(text.length, 1)) * 100)}%</p>
-            </Card>
+            <Card className="p-3 text-center"><p className="text-xs text-muted-foreground">WPM</p><p className="text-2xl font-bold">{liveStats.wpm}</p></Card>
+            <Card className="p-3 text-center"><p className="text-xs text-muted-foreground">Accuracy</p><p className="text-2xl font-bold text-success">{liveStats.accuracy}%</p></Card>
+            <Card className="p-3 text-center"><p className="text-xs text-muted-foreground">Errors</p><p className="text-2xl font-bold text-destructive">{liveStats.errors}</p></Card>
+            <Card className="p-3 text-center"><p className="text-xs text-muted-foreground">Typed</p><p className="text-2xl font-bold">{userInput.length}</p></Card>
             <Card className="p-3 text-center">
               <p className="text-xs text-muted-foreground flex items-center justify-center gap-1"><Timer className="h-3 w-3" /> Time</p>
               <p className="text-2xl font-bold font-mono">{examModeOn ? fmtTime(timeLeft) : "Free"}</p>
             </Card>
           </div>
 
-          <Progress value={(userInput.length / Math.max(text.length, 1)) * 100} className="mb-4 h-2" />
+          {examModeOn && timeLeft !== null && (
+            <Progress value={(1 - timeLeft / (duration * 60)) * 100} className="mb-4 h-2" />
+          )}
 
           {/* Paragraph */}
           <Card className="mb-4">
@@ -277,14 +370,24 @@ const AdvancedExamMode = () => {
               <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <Badge className={DIFFICULTY_META[difficulty].color}>{DIFFICULTY_META[difficulty].label}</Badge>
-                  {paragraph && <Badge variant="outline">{paragraph.exam.toUpperCase()}</Badge>}
-                  <span className="text-xs text-muted-foreground">{text.length} chars</span>
+                  {currentTags && <Badge variant="outline">{currentTags.exam.toUpperCase()}</Badge>}
+                  <span className="text-xs text-muted-foreground">auto-extending</span>
                 </div>
-                <Button size="sm" variant="outline" onClick={loadNew}>
-                  <RotateCcw className="h-4 w-4 mr-1" /> New Paragraph
-                </Button>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={onRetry}>
+                    <RotateCcw className="h-4 w-4 mr-1" /> Retry
+                  </Button>
+                  <Button size="sm" variant="secondary" onClick={onNextExam}>
+                    Next Exam <ArrowRight className="h-4 w-4 ml-1" />
+                  </Button>
+                  {examModeOn && startTime && (
+                    <Button size="sm" onClick={finishTest}>Finish</Button>
+                  )}
+                </div>
               </div>
-              <div className="text-lg leading-relaxed font-mono select-none break-words">{renderText()}</div>
+              <div className="text-lg leading-relaxed font-mono select-none break-words max-h-72 overflow-y-auto">
+                {renderText()}
+              </div>
             </CardContent>
           </Card>
 
@@ -295,56 +398,20 @@ const AdvancedExamMode = () => {
                 ref={inputRef}
                 value={userInput}
                 onChange={handleChange}
+                onKeyDown={handleKeyDown}
                 disabled={finished}
                 spellCheck={false}
                 rows={5}
-                placeholder={finished ? "Test finished — click 'New Paragraph' to retry" : "Start typing here..."}
+                placeholder="Start typing here..."
                 className="w-full p-3 text-lg font-mono bg-background border-2 border-border rounded-lg focus:outline-none focus:border-primary resize-none disabled:opacity-60"
               />
               {noBackspace && (
                 <p className="text-xs text-orange-600 mt-2 flex items-center gap-1">
-                  <AlertTriangle className="h-3 w-3" /> Backspace disabled — type carefully!
+                  <AlertTriangle className="h-3 w-3" /> Backspace & Delete disabled — type carefully!
                 </p>
               )}
             </CardContent>
           </Card>
-
-          {/* Mistake Heatmap */}
-          {(stats.errors > 0 || finished) && (
-            <Card className="mb-6">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Trophy className="h-4 w-4" /> Mistake Breakdown
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="rounded-lg border p-3">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground"><Hash className="h-4 w-4" /> Symbols</div>
-                  <p className="text-2xl font-bold text-destructive">{stats.mistakes.symbols}</p>
-                </div>
-                <div className="rounded-lg border p-3">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">123 Numbers</div>
-                  <p className="text-2xl font-bold text-destructive">{stats.mistakes.numbers}</p>
-                </div>
-                <div className="rounded-lg border p-3">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground"><TypeIcon className="h-4 w-4" /> Capitals</div>
-                  <p className="text-2xl font-bold text-destructive">{stats.mistakes.caps}</p>
-                </div>
-                <div className="rounded-lg border p-3">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">Aa Letters</div>
-                  <p className="text-2xl font-bold text-destructive">{stats.mistakes.letters}</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {finished && (
-            <div className="text-center">
-              <Button size="lg" onClick={loadNew} className="gap-2">
-                <RotateCcw className="h-5 w-5" /> Try Another Paragraph
-              </Button>
-            </div>
-          )}
         </main>
         <Footer />
       </AdLayout>
