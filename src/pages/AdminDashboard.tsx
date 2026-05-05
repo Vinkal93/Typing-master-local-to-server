@@ -36,52 +36,29 @@ const COLORS = [
   'hsl(280, 65%, 60%)', 'hsl(340, 82%, 52%)', 'hsl(45, 93%, 47%)',
 ];
 
-const ADMIN_BLOGS_KEY = 'tm_admin_blogs';
-
-interface AdminBlog {
-  slug: string;
-  title: string;
-  description: string;
-  content: string;
-  category: string;
-  keywords: string;
-  status: 'draft' | 'published';
-  createdAt: number;
-  updatedAt: number;
-  views: number;
-}
-
-const getAdminBlogs = (): AdminBlog[] => {
-  try {
-    const data = localStorage.getItem(ADMIN_BLOGS_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch { return []; }
-};
-
-const saveAdminBlogs = (blogs: AdminBlog[]) => {
-  localStorage.setItem(ADMIN_BLOGS_KEY, JSON.stringify(blogs));
-};
-
 const AdminDashboard = () => {
   const { user, logout, isAdmin, loading } = useAdmin();
   const navigate = useNavigate();
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [liveVisitors, setLiveVisitors] = useState(0);
   const [todayVisits, setTodayVisits] = useState(0);
-  const [adminBlogs, setAdminBlogs] = useState<AdminBlog[]>(getAdminBlogs());
   const [students, setStudents] = useState<StudentProfile[]>([]);
   const [studentFilter, setStudentFilter] = useState<'all' | 'pending' | 'active' | 'premium' | 'suspended'>('all');
   const [studentSearch, setStudentSearch] = useState('');
 
-  // Blog editor state
-  const [editingBlog, setEditingBlog] = useState<AdminBlog | null>(null);
-  const [blogTitle, setBlogTitle] = useState("");
-  const [blogSlug, setBlogSlug] = useState("");
-  const [blogDesc, setBlogDesc] = useState("");
-  const [blogContent, setBlogContent] = useState("");
-  const [blogCategory, setBlogCategory] = useState("");
-  const [blogKeywords, setBlogKeywords] = useState("");
-  const [blogStatus, setBlogStatus] = useState<'draft' | 'published'>('draft');
+  // Blog state
+  const [adminBlogs, setAdminBlogs] = useState<StoredBlog[]>(getStoredBlogs());
+  const [editingBlog, setEditingBlog] = useState<StoredBlog | null>(null);
+  const [showEditor, setShowEditor] = useState(false);
+  const [blogStatusFilter, setBlogStatusFilter] = useState<'all' | 'draft' | 'published' | 'scheduled'>('all');
+
+  // Mediapicker callback for editor
+  const [mediaPickerCb, setMediaPickerCb] = useState<((url: string) => void) | null>(null);
+
+  // SEO checker state
+  const [seoUrl, setSeoUrl] = useState("");
+  const [seoResults, setSeoResults] = useState<{label: string; status: 'good'|'warning'|'error'; message: string}[]>([]);
+
 
   // SEO checker state
   const [seoUrl, setSeoUrl] = useState("");
