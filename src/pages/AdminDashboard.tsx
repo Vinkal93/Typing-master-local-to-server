@@ -59,11 +59,6 @@ const AdminDashboard = () => {
   const [seoUrl, setSeoUrl] = useState("");
   const [seoResults, setSeoResults] = useState<{label: string; status: 'good'|'warning'|'error'; message: string}[]>([]);
 
-
-  // SEO checker state
-  const [seoUrl, setSeoUrl] = useState("");
-  const [seoResults, setSeoResults] = useState<{label: string; status: 'good'|'warning'|'error'; message: string}[]>([]);
-
   const loadStudents = () => {
     const profiles = getProfiles();
     setStudents(Object.values(profiles));
@@ -141,71 +136,44 @@ const AdminDashboard = () => {
   });
 
   // Blog management
-  const startNewBlog = () => {
-    setEditingBlog(null);
-    setBlogTitle(""); setBlogSlug(""); setBlogDesc(""); setBlogContent("");
-    setBlogCategory(""); setBlogKeywords(""); setBlogStatus('draft');
-  };
+  const reloadBlogs = () => setAdminBlogs(getStoredBlogs());
 
-  const editBlog = (blog: AdminBlog) => {
-    setEditingBlog(blog);
-    setBlogTitle(blog.title); setBlogSlug(blog.slug); setBlogDesc(blog.description);
-    setBlogContent(blog.content); setBlogCategory(blog.category);
-    setBlogKeywords(blog.keywords); setBlogStatus(blog.status);
-  };
+  const startNewBlog = () => { setEditingBlog(null); setShowEditor(true); };
+  const editBlog = (blog: StoredBlog) => { setEditingBlog(blog); setShowEditor(true); };
+  const removeBlog = (slug: string) => { deleteAdminBlog(slug); reloadBlogs(); };
 
-  const saveBlog = () => {
-    if (!blogTitle || !blogSlug) return;
-    const now = Date.now();
-    const blog: AdminBlog = {
-      slug: blogSlug, title: blogTitle, description: blogDesc,
-      content: blogContent, category: blogCategory, keywords: blogKeywords,
-      status: blogStatus, createdAt: editingBlog?.createdAt || now,
-      updatedAt: now, views: editingBlog?.views || 0,
-    };
-    const blogs = getAdminBlogs();
-    const idx = blogs.findIndex(b => b.slug === editingBlog?.slug);
-    if (idx >= 0) blogs[idx] = blog; else blogs.push(blog);
-    saveAdminBlogs(blogs); setAdminBlogs(blogs); startNewBlog();
+  const filteredBlogs = adminBlogs.filter(b => blogStatusFilter === 'all' || b.status === blogStatusFilter);
+  const blogStats = {
+    total: adminBlogs.length,
+    drafts: adminBlogs.filter(b => b.status === 'draft').length,
+    published: adminBlogs.filter(b => b.status === 'published').length,
+    scheduled: adminBlogs.filter(b => b.status === 'scheduled').length,
+    totalViews: Object.values(getViews()).reduce((a, b) => a + b, 0),
   };
-
-  const deleteBlog = (slug: string) => {
-    const blogs = getAdminBlogs().filter(b => b.slug !== slug);
-    saveAdminBlogs(blogs); setAdminBlogs(blogs);
-  };
-
-  const titleToSlug = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
   // SEO checker
   const runSeoCheck = () => {
-    const results: typeof seoResults = [];
-    const page = defaultBlogPosts.find(p => p.slug === seoUrl) || adminBlogs.find(b => b.slug === seoUrl);
+    const stored = adminBlogs.find(b => b.slug === seoUrl);
+    if (stored) {
+      const r = analyzeSeo(stored);
+      setSeoResults([
+        { label: 'SEO Score', status: r.score >= 80 ? 'good' : r.score >= 50 ? 'warning' : 'error', message: `${r.score}/100 (${r.grade})` },
+        ...r.checks.map(c => ({ label: c.label, status: c.status, message: c.message })),
+      ]);
+      return;
+    }
+    const page = defaultBlogPosts.find(p => p.slug === seoUrl);
     if (!page) {
-      results.push({ label: "Page Found", status: 'error', message: "Page not found. Enter a valid blog slug." });
-      setSeoResults(results); return;
+      setSeoResults([{ label: 'Page Found', status: 'error', message: 'No blog with this slug' }]);
+      return;
     }
-    if (page.title.length >= 30 && page.title.length <= 60) {
-      results.push({ label: "Title Length", status: 'good', message: `${page.title.length} chars (30-60 ideal)` });
-    } else {
-      results.push({ label: "Title Length", status: 'warning', message: `${page.title.length} chars (should be 30-60)` });
-    }
-    if (page.description.length >= 120 && page.description.length <= 160) {
-      results.push({ label: "Meta Description", status: 'good', message: `${page.description.length} chars (120-160 ideal)` });
-    } else {
-      results.push({ label: "Meta Description", status: 'warning', message: `${page.description.length} chars (should be 120-160)` });
-    }
-    const contentLen = page.content.length;
-    if (contentLen > 2000) results.push({ label: "Content Length", status: 'good', message: `${contentLen} chars - good length` });
-    else if (contentLen > 500) results.push({ label: "Content Length", status: 'warning', message: `${contentLen} chars - consider adding more` });
-    else results.push({ label: "Content Length", status: 'error', message: `${contentLen} chars - too short` });
-    const h2Count = (page.content.match(/^## /gm) || []).length;
-    results.push({ label: "Headings", status: h2Count >= 3 ? 'good' : 'warning', message: `${h2Count} headings found` });
-    const linkCount = (page.content.match(/\[.*?\]\(\/.*?\)/g) || []).length;
-    results.push({ label: "Internal Links", status: linkCount >= 2 ? 'good' : 'warning', message: `${linkCount} links` });
-    const score = Math.round((results.filter(r => r.status === 'good').length / results.length) * 100);
-    results.unshift({ label: "SEO Score", status: score >= 80 ? 'good' : score >= 50 ? 'warning' : 'error', message: `${score} / 100` });
-    setSeoResults(results);
+    const r = analyzeSeo({ title: page.title, description: page.description, content: page.content, focusKeyword: page.keywords[0] || '', metaTitle: page.title });
+    setSeoResults([
+      { label: 'SEO Score', status: r.score >= 80 ? 'good' : r.score >= 50 ? 'warning' : 'error', message: `${r.score}/100 (${r.grade})` },
+      ...r.checks.map(c => ({ label: c.label, status: c.status, message: c.message })),
+    ]);
   };
+
 
   const allBlogs = [...defaultBlogPosts.map(b => ({ ...b, status: 'published' as const, createdAt: new Date(b.date).getTime(), updatedAt: new Date(b.date).getTime(), views: 0, keywords: b.keywords.join(', ') })), ...adminBlogs];
 
