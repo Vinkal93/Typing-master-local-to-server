@@ -24,40 +24,17 @@ import {
   getAnalyticsData, getLiveVisitors, getTodayVisits,
   getTopPages, getTrafficSources, getDailyVisitsChart, clearAnalytics, AnalyticsData
 } from "@/lib/analyticsTracker";
-import { blogPosts as defaultBlogPosts, BlogPost } from "@/lib/blogData";
+import { blogPosts as defaultBlogPosts } from "@/lib/blogData";
 import { curriculum, getTotalLessons } from "@/lib/curriculumData";
 import { StudentProfile, getProfiles, saveProfile, saveAllProfiles } from "@/contexts/StudentContext";
+import { AdvancedBlogEditor } from "@/components/admin/AdvancedBlogEditor";
+import { MediaLibrary } from "@/components/admin/MediaLibrary";
+import { AdminBlog as StoredBlog, getAdminBlogs as getStoredBlogs, deleteAdminBlog, analyzeSeo, getViews } from "@/lib/adminBlogStore";
 
 const COLORS = [
   'hsl(198, 93%, 60%)', 'hsl(24, 95%, 53%)', 'hsl(142, 71%, 45%)',
   'hsl(280, 65%, 60%)', 'hsl(340, 82%, 52%)', 'hsl(45, 93%, 47%)',
 ];
-
-const ADMIN_BLOGS_KEY = 'tm_admin_blogs';
-
-interface AdminBlog {
-  slug: string;
-  title: string;
-  description: string;
-  content: string;
-  category: string;
-  keywords: string;
-  status: 'draft' | 'published';
-  createdAt: number;
-  updatedAt: number;
-  views: number;
-}
-
-const getAdminBlogs = (): AdminBlog[] => {
-  try {
-    const data = localStorage.getItem(ADMIN_BLOGS_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch { return []; }
-};
-
-const saveAdminBlogs = (blogs: AdminBlog[]) => {
-  localStorage.setItem(ADMIN_BLOGS_KEY, JSON.stringify(blogs));
-};
 
 const AdminDashboard = () => {
   const { user, logout, isAdmin, loading } = useAdmin();
@@ -65,20 +42,18 @@ const AdminDashboard = () => {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [liveVisitors, setLiveVisitors] = useState(0);
   const [todayVisits, setTodayVisits] = useState(0);
-  const [adminBlogs, setAdminBlogs] = useState<AdminBlog[]>(getAdminBlogs());
   const [students, setStudents] = useState<StudentProfile[]>([]);
   const [studentFilter, setStudentFilter] = useState<'all' | 'pending' | 'active' | 'premium' | 'suspended'>('all');
   const [studentSearch, setStudentSearch] = useState('');
 
-  // Blog editor state
-  const [editingBlog, setEditingBlog] = useState<AdminBlog | null>(null);
-  const [blogTitle, setBlogTitle] = useState("");
-  const [blogSlug, setBlogSlug] = useState("");
-  const [blogDesc, setBlogDesc] = useState("");
-  const [blogContent, setBlogContent] = useState("");
-  const [blogCategory, setBlogCategory] = useState("");
-  const [blogKeywords, setBlogKeywords] = useState("");
-  const [blogStatus, setBlogStatus] = useState<'draft' | 'published'>('draft');
+  // Blog state
+  const [adminBlogs, setAdminBlogs] = useState<StoredBlog[]>(getStoredBlogs());
+  const [editingBlog, setEditingBlog] = useState<StoredBlog | null>(null);
+  const [showEditor, setShowEditor] = useState(false);
+  const [blogStatusFilter, setBlogStatusFilter] = useState<'all' | 'draft' | 'published' | 'scheduled'>('all');
+
+  // Mediapicker callback for editor
+  const [mediaPickerCb, setMediaPickerCb] = useState<((url: string) => void) | null>(null);
 
   // SEO checker state
   const [seoUrl, setSeoUrl] = useState("");
@@ -161,71 +136,44 @@ const AdminDashboard = () => {
   });
 
   // Blog management
-  const startNewBlog = () => {
-    setEditingBlog(null);
-    setBlogTitle(""); setBlogSlug(""); setBlogDesc(""); setBlogContent("");
-    setBlogCategory(""); setBlogKeywords(""); setBlogStatus('draft');
-  };
+  const reloadBlogs = () => setAdminBlogs(getStoredBlogs());
 
-  const editBlog = (blog: AdminBlog) => {
-    setEditingBlog(blog);
-    setBlogTitle(blog.title); setBlogSlug(blog.slug); setBlogDesc(blog.description);
-    setBlogContent(blog.content); setBlogCategory(blog.category);
-    setBlogKeywords(blog.keywords); setBlogStatus(blog.status);
-  };
+  const startNewBlog = () => { setEditingBlog(null); setShowEditor(true); };
+  const editBlog = (blog: StoredBlog) => { setEditingBlog(blog); setShowEditor(true); };
+  const removeBlog = (slug: string) => { deleteAdminBlog(slug); reloadBlogs(); };
 
-  const saveBlog = () => {
-    if (!blogTitle || !blogSlug) return;
-    const now = Date.now();
-    const blog: AdminBlog = {
-      slug: blogSlug, title: blogTitle, description: blogDesc,
-      content: blogContent, category: blogCategory, keywords: blogKeywords,
-      status: blogStatus, createdAt: editingBlog?.createdAt || now,
-      updatedAt: now, views: editingBlog?.views || 0,
-    };
-    const blogs = getAdminBlogs();
-    const idx = blogs.findIndex(b => b.slug === editingBlog?.slug);
-    if (idx >= 0) blogs[idx] = blog; else blogs.push(blog);
-    saveAdminBlogs(blogs); setAdminBlogs(blogs); startNewBlog();
+  const filteredBlogs = adminBlogs.filter(b => blogStatusFilter === 'all' || b.status === blogStatusFilter);
+  const blogStats = {
+    total: adminBlogs.length,
+    drafts: adminBlogs.filter(b => b.status === 'draft').length,
+    published: adminBlogs.filter(b => b.status === 'published').length,
+    scheduled: adminBlogs.filter(b => b.status === 'scheduled').length,
+    totalViews: Object.values(getViews()).reduce((a, b) => a + b, 0),
   };
-
-  const deleteBlog = (slug: string) => {
-    const blogs = getAdminBlogs().filter(b => b.slug !== slug);
-    saveAdminBlogs(blogs); setAdminBlogs(blogs);
-  };
-
-  const titleToSlug = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
   // SEO checker
   const runSeoCheck = () => {
-    const results: typeof seoResults = [];
-    const page = defaultBlogPosts.find(p => p.slug === seoUrl) || adminBlogs.find(b => b.slug === seoUrl);
+    const stored = adminBlogs.find(b => b.slug === seoUrl);
+    if (stored) {
+      const r = analyzeSeo(stored);
+      setSeoResults([
+        { label: 'SEO Score', status: r.score >= 80 ? 'good' : r.score >= 50 ? 'warning' : 'error', message: `${r.score}/100 (${r.grade})` },
+        ...r.checks.map(c => ({ label: c.label, status: c.status, message: c.message })),
+      ]);
+      return;
+    }
+    const page = defaultBlogPosts.find(p => p.slug === seoUrl);
     if (!page) {
-      results.push({ label: "Page Found", status: 'error', message: "Page not found. Enter a valid blog slug." });
-      setSeoResults(results); return;
+      setSeoResults([{ label: 'Page Found', status: 'error', message: 'No blog with this slug' }]);
+      return;
     }
-    if (page.title.length >= 30 && page.title.length <= 60) {
-      results.push({ label: "Title Length", status: 'good', message: `${page.title.length} chars (30-60 ideal)` });
-    } else {
-      results.push({ label: "Title Length", status: 'warning', message: `${page.title.length} chars (should be 30-60)` });
-    }
-    if (page.description.length >= 120 && page.description.length <= 160) {
-      results.push({ label: "Meta Description", status: 'good', message: `${page.description.length} chars (120-160 ideal)` });
-    } else {
-      results.push({ label: "Meta Description", status: 'warning', message: `${page.description.length} chars (should be 120-160)` });
-    }
-    const contentLen = page.content.length;
-    if (contentLen > 2000) results.push({ label: "Content Length", status: 'good', message: `${contentLen} chars - good length` });
-    else if (contentLen > 500) results.push({ label: "Content Length", status: 'warning', message: `${contentLen} chars - consider adding more` });
-    else results.push({ label: "Content Length", status: 'error', message: `${contentLen} chars - too short` });
-    const h2Count = (page.content.match(/^## /gm) || []).length;
-    results.push({ label: "Headings", status: h2Count >= 3 ? 'good' : 'warning', message: `${h2Count} headings found` });
-    const linkCount = (page.content.match(/\[.*?\]\(\/.*?\)/g) || []).length;
-    results.push({ label: "Internal Links", status: linkCount >= 2 ? 'good' : 'warning', message: `${linkCount} links` });
-    const score = Math.round((results.filter(r => r.status === 'good').length / results.length) * 100);
-    results.unshift({ label: "SEO Score", status: score >= 80 ? 'good' : score >= 50 ? 'warning' : 'error', message: `${score} / 100` });
-    setSeoResults(results);
+    const r = analyzeSeo({ title: page.title, description: page.description, content: page.content, focusKeyword: page.keywords[0] || '', metaTitle: page.title });
+    setSeoResults([
+      { label: 'SEO Score', status: r.score >= 80 ? 'good' : r.score >= 50 ? 'warning' : 'error', message: `${r.score}/100 (${r.grade})` },
+      ...r.checks.map(c => ({ label: c.label, status: c.status, message: c.message })),
+    ]);
   };
+
 
   const allBlogs = [...defaultBlogPosts.map(b => ({ ...b, status: 'published' as const, createdAt: new Date(b.date).getTime(), updatedAt: new Date(b.date).getTime(), views: 0, keywords: b.keywords.join(', ') })), ...adminBlogs];
 
@@ -280,7 +228,7 @@ const AdminDashboard = () => {
         {/* Main Tabs */}
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList className="flex flex-wrap h-auto gap-1">
-            {['overview', 'students', 'payments', 'blogs', 'seo', 'analytics', 'settings'].map(tab => (
+            {['overview', 'students', 'payments', 'blogs', 'media', 'seo', 'analytics', 'settings'].map(tab => (
               <TabsTrigger key={tab} value={tab} className="capitalize">{tab}</TabsTrigger>
             ))}
           </TabsList>
@@ -597,88 +545,128 @@ const AdminDashboard = () => {
 
           {/* Blog Management */}
           <TabsContent value="blogs" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-foreground">Blog Management</h3>
-              <Button size="sm" onClick={startNewBlog}><Plus className="h-4 w-4 mr-1" /> New Post</Button>
-            </div>
+            {showEditor ? (
+              <>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-foreground">{editingBlog ? 'Edit Post' : 'Create New Post'}</h3>
+                  <Button size="sm" variant="outline" onClick={() => { setShowEditor(false); reloadBlogs(); }}>← Back to Posts</Button>
+                </div>
+                <AdvancedBlogEditor
+                  initial={editingBlog}
+                  onSaved={() => { setShowEditor(false); setEditingBlog(null); reloadBlogs(); }}
+                  onCancel={() => { setShowEditor(false); setEditingBlog(null); }}
+                  onPickMedia={(cb) => setMediaPickerCb(() => cb)}
+                />
+                {mediaPickerCb && (
+                  <Card className="border-primary">
+                    <CardHeader><CardTitle className="text-sm">Pick Media</CardTitle></CardHeader>
+                    <CardContent>
+                      <MediaLibrary selectMode onSelect={(url) => { mediaPickerCb(url); setMediaPickerCb(null); }} />
+                      <Button size="sm" variant="outline" className="mt-2" onClick={() => setMediaPickerCb(null)}>Cancel</Button>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <h3 className="text-lg font-bold text-foreground">Blog Manager</h3>
+                  <Button size="sm" onClick={startNewBlog}><Plus className="h-4 w-4 mr-1" /> New Post</Button>
+                </div>
 
-            <Card className="border-border">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <PenTool className="h-4 w-4" /> {editingBlog ? 'Edit Post' : 'New Post'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Title</Label>
-                    <Input value={blogTitle} onChange={e => { setBlogTitle(e.target.value); if (!editingBlog) setBlogSlug(titleToSlug(e.target.value)); }} placeholder="Blog post title" />
-                  </div>
-                  <div>
-                    <Label>URL Slug</Label>
-                    <Input value={blogSlug} onChange={e => setBlogSlug(e.target.value)} placeholder="url-slug" />
-                  </div>
-                </div>
-                <div>
-                  <Label>Meta Description</Label>
-                  <Input value={blogDesc} onChange={e => setBlogDesc(e.target.value)} placeholder="SEO description (120-160 chars)" />
-                  <span className="text-xs text-muted-foreground">{blogDesc.length}/160</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Category</Label>
-                    <Input value={blogCategory} onChange={e => setBlogCategory(e.target.value)} placeholder="e.g. Tips & Tricks" />
-                  </div>
-                  <div>
-                    <Label>Keywords (comma separated)</Label>
-                    <Input value={blogKeywords} onChange={e => setBlogKeywords(e.target.value)} placeholder="keyword1, keyword2" />
-                  </div>
-                </div>
-                <div>
-                  <Label>Content (Markdown)</Label>
-                  <Textarea value={blogContent} onChange={e => setBlogContent(e.target.value)} placeholder="Write your blog content in markdown..." className="min-h-[300px] font-mono text-sm" />
-                </div>
-                <div className="flex items-center gap-3">
-                  <Button onClick={() => { setBlogStatus('published'); saveBlog(); }} className="gap-1">
-                    <CheckCircle className="h-4 w-4" /> Publish
-                  </Button>
-                  <Button variant="outline" onClick={() => { setBlogStatus('draft'); saveBlog(); }} className="gap-1">
-                    <Save className="h-4 w-4" /> Save Draft
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border">
-              <CardHeader><CardTitle className="text-base">All Posts ({allBlogs.length})</CardTitle></CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {allBlogs.map((b, i) => (
-                    <div key={i} className="flex items-center justify-between border-b border-border pb-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{b.title}</p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <Badge variant={b.status === 'published' ? 'default' : 'secondary'} className="text-[10px]">{b.status}</Badge>
-                          <span className="text-xs text-muted-foreground">{b.category}</span>
-                        </div>
-                      </div>
-                      <div className="flex gap-1">
-                        {adminBlogs.find(ab => ab.slug === b.slug) && (
-                          <>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => editBlog(b as AdminBlog)}>
-                              <PenTool className="h-3 w-3" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteBlog(b.slug)}>
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                  {[
+                    { label: 'Total', value: blogStats.total + defaultBlogPosts.length },
+                    { label: 'Published', value: blogStats.published + defaultBlogPosts.length },
+                    { label: 'Drafts', value: blogStats.drafts },
+                    { label: 'Scheduled', value: blogStats.scheduled },
+                    { label: 'Total Views', value: blogStats.totalViews },
+                  ].map((s, i) => (
+                    <Card key={i} className="border-border"><CardContent className="pt-4 pb-3 text-center">
+                      <p className="text-xl font-bold text-foreground">{s.value}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase">{s.label}</p>
+                    </CardContent></Card>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+
+                <div className="flex flex-wrap gap-2">
+                  {(['all', 'draft', 'published', 'scheduled'] as const).map(f => (
+                    <Button key={f} size="sm" variant={blogStatusFilter === f ? 'default' : 'outline'} onClick={() => setBlogStatusFilter(f)} className="capitalize">{f}</Button>
+                  ))}
+                </div>
+
+                <Card className="border-border">
+                  <CardHeader><CardTitle className="text-base">Posts ({filteredBlogs.length})</CardTitle></CardHeader>
+                  <CardContent>
+                    {filteredBlogs.length === 0 ? (
+                      <p className="text-sm text-muted-foreground py-6 text-center">No posts yet. Click "New Post" to start writing.</p>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead><tr className="border-b border-border text-left text-muted-foreground text-xs">
+                            <th className="py-2 px-2">Title</th>
+                            <th className="py-2 px-2">Status</th>
+                            <th className="py-2 px-2">SEO</th>
+                            <th className="py-2 px-2">Category</th>
+                            <th className="py-2 px-2 text-center">Views</th>
+                            <th className="py-2 px-2">Updated</th>
+                            <th className="py-2 px-2 text-right">Actions</th>
+                          </tr></thead>
+                          <tbody>
+                            {filteredBlogs.map(b => {
+                              const seo = analyzeSeo(b);
+                              const seoColor = seo.score >= 80 ? 'text-[hsl(142,71%,45%)]' : seo.score >= 50 ? 'text-[hsl(45,80%,50%)]' : 'text-destructive';
+                              return (
+                                <tr key={b.slug} className="border-b border-border/50 hover:bg-muted/30">
+                                  <td className="py-2 px-2">
+                                    <p className="font-medium text-foreground">{b.title || '(untitled)'}</p>
+                                    <p className="text-[10px] text-muted-foreground font-mono">/blog/{b.slug}</p>
+                                  </td>
+                                  <td className="py-2 px-2">
+                                    <Badge variant={b.status === 'published' ? 'default' : b.status === 'scheduled' ? 'outline' : 'secondary'} className="text-[10px]">{b.status}</Badge>
+                                  </td>
+                                  <td className={`py-2 px-2 font-bold ${seoColor}`}>{seo.score}</td>
+                                  <td className="py-2 px-2 text-xs text-muted-foreground">{b.category}</td>
+                                  <td className="py-2 px-2 text-center">{b.views || 0}</td>
+                                  <td className="py-2 px-2 text-xs text-muted-foreground">{new Date(b.updatedAt).toLocaleDateString()}</td>
+                                  <td className="py-2 px-2 text-right">
+                                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => window.open(`/blog/${b.slug}`, '_blank')} title="View"><Eye className="h-3 w-3" /></Button>
+                                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => editBlog(b)} title="Edit"><PenTool className="h-3 w-3" /></Button>
+                                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => removeBlog(b.slug)} title="Delete"><Trash2 className="h-3 w-3" /></Button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card className="border-border">
+                  <CardHeader><CardTitle className="text-base">Built-in Posts ({defaultBlogPosts.length})</CardTitle><CardDescription>Default content shipped with the app</CardDescription></CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {defaultBlogPosts.map(b => (
+                        <div key={b.slug} className="flex items-center justify-between border-b border-border pb-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">{b.title}</p>
+                            <span className="text-xs text-muted-foreground">{b.category}</span>
+                          </div>
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => window.open(`/blog/${b.slug}`, '_blank')}><Eye className="h-3 w-3" /></Button>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </TabsContent>
+
+          {/* Media Library */}
+          <TabsContent value="media" className="space-y-4">
+            <MediaLibrary />
           </TabsContent>
 
           {/* SEO */}

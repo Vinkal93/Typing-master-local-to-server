@@ -7,17 +7,33 @@ import AdBanner from "@/components/AdBanner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getBlogPost, getRelatedPosts } from "@/lib/blogData";
+import { getRelatedPosts } from "@/lib/blogData";
+import { getPublishedBlog, getAllPublishedBlogs, incrementView, generateArticleSchema, generateBreadcrumbSchema, generateFaqSchema } from "@/lib/adminBlogStore";
 import { Clock, ArrowLeft, ArrowRight } from "lucide-react";
 
 const BlogPost = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const post = getBlogPost(slug || "");
+  const post = getPublishedBlog(slug || "");
 
   useEffect(() => {
     if (post) {
       document.title = post.title;
+      incrementView(post.slug);
+      // Inject JSON-LD schema
+      const schemas = [
+        generateArticleSchema(post as any),
+        generateBreadcrumbSchema(post.slug, post.title),
+        ...(post.faq?.length ? [generateFaqSchema(post.faq)] : []),
+      ];
+      const scripts = schemas.map(s => {
+        const el = document.createElement("script");
+        el.type = "application/ld+json";
+        el.text = JSON.stringify(s);
+        document.head.appendChild(el);
+        return el;
+      });
+      return () => { scripts.forEach(s => s.remove()); };
     }
   }, [post]);
 
@@ -34,7 +50,8 @@ const BlogPost = () => {
     );
   }
 
-  const related = getRelatedPosts(post);
+  const allPosts = getAllPublishedBlogs();
+  const related = post.relatedSlugs?.length ? getRelatedPosts(post) : allPosts.filter(p => p.slug !== post.slug && p.category === post.category).slice(0, 3);
 
   // Generate TOC from content
   const headings = post.content.match(/^## .+$/gm)?.map(h => h.replace("## ", "")) || [];
