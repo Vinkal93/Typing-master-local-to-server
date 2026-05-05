@@ -228,7 +228,7 @@ const AdminDashboard = () => {
         {/* Main Tabs */}
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList className="flex flex-wrap h-auto gap-1">
-            {['overview', 'students', 'payments', 'blogs', 'seo', 'analytics', 'settings'].map(tab => (
+            {['overview', 'students', 'payments', 'blogs', 'media', 'seo', 'analytics', 'settings'].map(tab => (
               <TabsTrigger key={tab} value={tab} className="capitalize">{tab}</TabsTrigger>
             ))}
           </TabsList>
