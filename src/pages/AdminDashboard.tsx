@@ -24,9 +24,12 @@ import {
   getAnalyticsData, getLiveVisitors, getTodayVisits,
   getTopPages, getTrafficSources, getDailyVisitsChart, clearAnalytics, AnalyticsData
 } from "@/lib/analyticsTracker";
-import { blogPosts as defaultBlogPosts, BlogPost } from "@/lib/blogData";
+import { blogPosts as defaultBlogPosts } from "@/lib/blogData";
 import { curriculum, getTotalLessons } from "@/lib/curriculumData";
 import { StudentProfile, getProfiles, saveProfile, saveAllProfiles } from "@/contexts/StudentContext";
+import { AdvancedBlogEditor } from "@/components/admin/AdvancedBlogEditor";
+import { MediaLibrary } from "@/components/admin/MediaLibrary";
+import { AdminBlog as StoredBlog, getAdminBlogs as getStoredBlogs, deleteAdminBlog, analyzeSeo, getViews } from "@/lib/adminBlogStore";
 
 const COLORS = [
   'hsl(198, 93%, 60%)', 'hsl(24, 95%, 53%)', 'hsl(142, 71%, 45%)',
