@@ -6,12 +6,13 @@ import AdLayout from "@/components/AdLayout";
 import AdBanner from "@/components/AdBanner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { blogPosts, getBlogCategories } from "@/lib/blogData";
+import { getAllPublishedBlogs } from "@/lib/adminBlogStore";
 import { Clock, ArrowRight } from "lucide-react";
 
 const Blog = () => {
   const navigate = useNavigate();
-  const categories = getBlogCategories();
+  const blogPosts = getAllPublishedBlogs();
+  const categories = [...new Set(blogPosts.map(p => p.category))];
 
   useEffect(() => {
     document.title = "Typing Blog | Tips, Guides & Practice Resources";
