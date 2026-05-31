@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -19,7 +20,6 @@ import {
 } from "@/lib/missedKeysTracker";
 import { saveTestRecord } from "@/lib/progressTracker";
 import {
-import SEO from "@/components/SEO";
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,

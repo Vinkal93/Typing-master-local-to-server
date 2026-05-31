@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import SEO from "@/components/SEO";
 import { useStudent } from "@/contexts/StudentContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,6 @@ import AdLayout from "@/components/AdLayout";
 import { curriculum, getTotalLessons, isLessonUnlocked, FREE_LESSON_COUNT } from "@/lib/curriculumData";
 import { getProgressData } from "@/lib/progressTracker";
 import {
-import SEO from "@/components/SEO";
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from "recharts";
 

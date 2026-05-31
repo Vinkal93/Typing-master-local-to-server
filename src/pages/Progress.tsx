@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import SEO from "@/components/SEO";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Target, Clock, Award, Trophy, Zap, Flame, Trash2, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +12,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { toast } from "@/hooks/use-toast";
 import { useState } from "react";
 import {
-import SEO from "@/components/SEO";
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
