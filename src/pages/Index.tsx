@@ -71,10 +71,10 @@ const Index = () => {
           {/* Hero Section with Animated Typing */}
           <div className="text-center mb-12 animate-fade-in">
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-              {isHindi ? "फ्री टाइपिंग टेस्ट ऑनलाइन" : "Free Typing Test Online"}
+              {isHindi ? "फ्री टाइपिंग मास्टर टूल — विंकल प्रजापति द्वारा" : "Free Typing Master Tool by Vinkal Prajapati"}
             </h1>
             <p className="text-xl text-muted-foreground mb-6">
-              {isHindi ? "अपनी टाइपिंग स्पीड और WPM चेक करें" : "Check Your Typing Speed & WPM"}
+              {isHindi ? "अपनी टाइपिंग स्पीड, WPM और एक्यूरेसी चेक करें — इंग्लिश और हिंदी टाइपिंग प्रैक्टिस" : "Check Your Typing Speed, WPM & Accuracy — English & Hindi Typing Practice"}
             </p>
             
             {/* Animated Typing Demo */}

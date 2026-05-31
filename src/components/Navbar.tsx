@@ -19,7 +19,7 @@ const Navbar = () => {
           <SidebarTrigger />
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
             <Keyboard className="h-6 w-6 text-primary" />
-            <h1 className="text-xl md:text-2xl font-bold text-foreground hidden sm:block">TypeMaster</h1>
+            <span className="text-xl md:text-2xl font-bold text-foreground hidden sm:block">Typing Master</span>
           </div>
         </div>
         
