@@ -7,6 +7,7 @@ import developerImage from "@/assets/developer-profile.webp";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useLanguage } from "@/contexts/LanguageContext";
+import SEO from "@/components/SEO";
 const AboutDeveloper = () => {
   const {
     isHindi
@@ -30,6 +31,23 @@ const AboutDeveloper = () => {
     tech: ["Excel", "VBA", "Python"]
   }];
   return <div className="min-h-screen bg-background flex flex-col">
+      <SEO
+        title="About Developer — Vinkal Prajapati | Typing Master"
+        description="Vinkal Prajapati — web developer and creator of Typing Master. Read about the developer behind the free typing tool."
+        keywords="vinkal prajapati, vinkal prajapati developer, typing master developer, vinkal prajapati typing"
+        breadcrumbs={[{name:"Home",path:"/"},{name:"About Developer",path:"/about-developer"}]}
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "ProfilePage",
+          mainEntity: {
+            "@type": "Person",
+            name: "Vinkal Prajapati",
+            url: "https://typingmaster2.vercel.app/about-developer",
+            jobTitle: "Web Developer & Creator of Typing Master",
+            sameAs: ["https://hashnode.com/@vinkalprajapati"]
+          }
+        }}
+      />
       <main className="container mx-auto px-4 py-12 flex-1">
         <div className="max-w-6xl mx-auto">
           {/* Hero Section */}
