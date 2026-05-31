@@ -1,12 +1,14 @@
 import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 const Disclaimer = () => {
   useEffect(() => { document.title = "Disclaimer | Free Typing Test Online"; }, []);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Disclaimer — Typing Master" description="Disclaimer for Typing Master content and tools." keywords="disclaimer" breadcrumbs={[{name:"Home",path:"/"},{name:"Disclaimer",path:"/disclaimer"}]} />
       <Navbar />
       <main className="container mx-auto px-4 py-8 flex-1 max-w-4xl">
         <h1 className="text-4xl font-bold text-foreground mb-6">Disclaimer</h1>

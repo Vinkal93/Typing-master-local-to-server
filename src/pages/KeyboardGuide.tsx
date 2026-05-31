@@ -13,6 +13,7 @@ import HandPositionGuide from "@/components/HandPositionGuide";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import SEO from "@/components/SEO";
 
 interface KeyData {
   char: string;
@@ -650,7 +651,8 @@ const KeyboardGuide = () => {
       <div
         className={`${baseWidth} h-12 m-0.5 rounded border-2 ${fingerColors[keyData.finger]} ${fingerColorsBorder[keyData.finger]} 
         flex items-center justify-center text-xs font-bold text-white shadow-md hover:scale-105 transition-transform cursor-pointer`}
-        onMouseEnter={() => setActiveKey(keyData.char)}
+        onMouseEnter={() =>
+      <SEO title="Keyboard Guide — English & Hindi Keyboard Layouts (Free PDF)" description="Free keyboard layout guides for English QWERTY, Hindi Inscript and Remington with downloadable PDF." keywords="keyboard guide, hindi keyboard layout, inscript layout, remington layout" breadcrumbs={[{name:"Home",path:"/"},{name:"Keyboard Guide",path:"/keyboard-guide"}]} /> setActiveKey(keyData.char)}
         onMouseLeave={() => setActiveKey("")}
       >
         <span className="text-center">{displayChar}</span>

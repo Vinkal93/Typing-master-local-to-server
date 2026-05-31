@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import AdLayout from "@/components/AdLayout";
 import { Button } from "@/components/ui/button";
 import { Clock, Play } from "lucide-react";
+import SEO from "@/components/SEO";
 
 const OneMinuteTypingTest = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const OneMinuteTypingTest = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="1 Minute Typing Test — Free Quick WPM Test" description="Take a free 1 minute typing test online. Quick WPM check with random English paragraphs." keywords="1 minute typing test, quick typing test, one minute wpm" breadcrumbs={[{name:"Home",path:"/"},{name:"1 Minute Test",path:"/1-minute-typing-test"}]} />
       <Navbar />
       <AdLayout>
         <main className="container mx-auto px-4 py-8 flex-1 text-center">

@@ -22,6 +22,7 @@ import {
   type AdvancedParagraph,
 } from "@/lib/advancedParagraphs";
 import { saveTestRecord } from "@/lib/progressTracker";
+import SEO from "@/components/SEO";
 
 const DIFFICULTY_META: Record<Difficulty, { label: string; color: string; icon: any; desc: string }> = {
   medium: { label: "Medium", color: "bg-yellow-500/10 text-yellow-600 border-yellow-500/30", icon: Shield, desc: "Warm-up · basic punctuation" },
@@ -187,6 +188,7 @@ const AdvancedExamMode = () => {
     const bar = (n: number) => Math.round((n / totalMistakes) * 100);
     return (
       <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Advanced Exam Mode — SSC, BSF, Banking Typing Practice" description="Advanced typing exam simulator with dynamic paragraphs for SSC, BSF, and Banking exams." keywords="advanced typing exam, ssc typing, bsf typing, banking typing" breadcrumbs={[{name:"Home",path:"/"},{name:"Advanced Exam",path:"/advanced-exam"}]} />
         <Navbar />
         <AdLayout>
           <main className="container mx-auto px-4 py-8 flex-1">

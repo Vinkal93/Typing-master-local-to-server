@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Keyboard, Clock, Target, TrendingUp, BookOpen, Trophy } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import SEO from "@/components/SEO";
 
 const TypingPractice = () => {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ const TypingPractice = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Typing Practice — Free Online Tool" description="Free typing practice tool with custom text support." keywords="typing practice" breadcrumbs={[{name:"Home",path:"/"},{name:"Practice",path:"/typing-practice"}]} />
       <Navbar />
       <AdLayout>
         <main className="container mx-auto px-4 py-8 flex-1">

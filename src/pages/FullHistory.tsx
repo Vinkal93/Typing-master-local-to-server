@@ -32,6 +32,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
+import SEO from "@/components/SEO";
 
 const FullHistory = () => {
   const navigate = useNavigate();
@@ -118,6 +119,7 @@ const FullHistory = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Full Typing History — Complete Test Records" description="View complete typing test history with WPM, accuracy and timestamps." keywords="typing history, typing records" breadcrumbs={[{name:"Home",path:"/"},{name:"Full History",path:"/full-history"}]} />
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}

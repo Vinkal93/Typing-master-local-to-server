@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdLayout from "@/components/AdLayout";
 import { curriculum, isLessonUnlocked, getTotalLessons, FREE_LESSON_COUNT } from "@/lib/curriculumData";
+import SEO from "@/components/SEO";
 
 const CoursePage = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const CoursePage = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Typing Course — Structured 12-Level Curriculum" description="Structured typing course with 12 levels and 57 lessons. Premium typing curriculum by Vinkal Prajapati." keywords="typing course, structured typing curriculum" breadcrumbs={[{name:"Home",path:"/"},{name:"Course",path:"/course"}]} />
       <Navbar />
       <AdLayout>
         <main className="container mx-auto px-4 py-8 flex-1">

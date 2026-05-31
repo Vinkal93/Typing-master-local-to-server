@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import AdLayout from "@/components/AdLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { saveTestRecord } from "@/lib/progressTracker";
+import SEO from "@/components/SEO";
 
 interface FallingWord {
   id: number;
@@ -657,6 +658,7 @@ const Games = () => {
   if (selectedGame === "space-typing") {
     return (
       <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Typing Games — Free Fun Speed Games Online" description="Play free typing games to improve your speed and accuracy. 6 fun games with difficulty scaling." keywords="typing games, free typing games, typing speed games" breadcrumbs={[{name:"Home",path:"/"},{name:"Games",path:"/games"}]} />
         <Navbar />
 
         <main className="container mx-auto px-4 py-8 flex-1">

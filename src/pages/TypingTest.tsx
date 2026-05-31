@@ -14,6 +14,7 @@ import { trackMissedKeys } from "@/lib/missedKeysTracker";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTypingSettings, getCaretClassName, getHighlightClassName } from "@/hooks/useTypingSettings";
 import { soundManager } from "@/lib/soundManager";
+import SEO from "@/components/SEO";
 
 const englishParagraphs = [
   "The quick brown fox jumps over the lazy dog. Programming is the art of telling another human what one wants the computer to do. Practice makes perfect when it comes to typing speed and accuracy. Every keystroke matters in the digital age where communication happens at the speed of light. The ability to type quickly and accurately is a fundamental skill that opens doors to countless opportunities in the modern workplace.",
@@ -167,6 +168,7 @@ const TypingTest = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Typing Speed Test Online — Free WPM & Accuracy Test" description="Take a free typing speed test online. Measure WPM, accuracy and improve with real-time feedback. English & Hindi support." keywords="typing test, typing speed test, wpm test online, free typing test" breadcrumbs={[{name:"Home",path:"/"},{name:"Typing Test",path:"/typing-test"}]} />
       <Navbar />
       <AdLayout showSidebar={true} showHeader={true}>
       <main className="container mx-auto px-4 py-8 flex-1">

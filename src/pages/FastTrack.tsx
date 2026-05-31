@@ -15,6 +15,7 @@ import { trackMissedKeys } from "@/lib/missedKeysTracker";
 import { saveTestRecord } from "@/lib/progressTracker";
 import { useTypingSettings, getCaretClassName, getHighlightClassName } from "@/hooks/useTypingSettings";
 import { soundManager } from "@/lib/soundManager";
+import SEO from "@/components/SEO";
 
 const englishSentences = [
   "The only way to do great work is to love what you do.",
@@ -468,6 +469,7 @@ const FastTrack = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Fast Track Mode — Quick Typing Speed Builder" description="Fast Track typing mode with custom timer and instant restart shortcuts." keywords="fast track typing, quick typing speed" breadcrumbs={[{name:"Home",path:"/"},{name:"Fast Track",path:"/fast-track"}]} />
       <Navbar />
       <AdLayout>
       <main className="container mx-auto px-4 py-8 flex-1 overflow-hidden">

@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import AdLayout from "@/components/AdLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getProgressData, markLessonComplete } from "@/lib/progressTracker";
+import SEO from "@/components/SEO";
 
 interface Lesson {
   id: string;
@@ -218,6 +219,7 @@ const Lessons = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Typing Lessons — Free Structured Typing Course Online" description="Learn touch typing with free structured lessons. Home row, top row, numbers and symbols with progress tracking." keywords="typing lessons, free typing course, learn typing online, touch typing" breadcrumbs={[{name:"Home",path:"/"},{name:"Lessons",path:"/lessons"}]} />
       <Navbar />
       <AdLayout>
 

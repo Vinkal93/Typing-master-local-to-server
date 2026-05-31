@@ -10,6 +10,7 @@ import { getProgressData, TestRecord } from "@/lib/progressTracker";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Trophy, TrendingUp, Target, Clock, Calendar, Filter, Award } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import SEO from "@/components/SEO";
 
 const ExamHistory = () => {
   const { isHindi } = useLanguage();
@@ -88,6 +89,7 @@ const ExamHistory = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Exam History — Past Typing Exam Records" description="View your past typing exam attempts and scores." keywords="exam history, typing exam records" breadcrumbs={[{name:"Home",path:"/"},{name:"Exam History",path:"/exam-history"}]} />
       <Navbar />
       
       <main className="container mx-auto px-4 py-8 flex-1">

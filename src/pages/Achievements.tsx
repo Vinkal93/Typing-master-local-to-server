@@ -6,6 +6,7 @@ import AdLayout from "@/components/AdLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getProgressData } from "@/lib/progressTracker";
 import { Trophy, Star, Zap, Target, Flame, Award, Shield, Crown } from "lucide-react";
+import SEO from "@/components/SEO";
 
 interface Badge {
   id: string;
@@ -59,6 +60,7 @@ const Achievements = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Achievements — Typing Badges & XP" description="Earn badges, XP and unlock achievements as you improve your typing." keywords="typing achievements, typing badges" breadcrumbs={[{name:"Home",path:"/"},{name:"Achievements",path:"/achievements"}]} />
       <Navbar />
       <AdLayout>
       <main className="container mx-auto px-4 py-8 flex-1">

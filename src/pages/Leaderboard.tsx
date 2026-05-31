@@ -6,6 +6,7 @@ import AdLayout from "@/components/AdLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getProgressData } from "@/lib/progressTracker";
 import { Trophy, Medal, Award } from "lucide-react";
+import SEO from "@/components/SEO";
 
 const Leaderboard = () => {
   const { isHindi } = useLanguage();
@@ -47,6 +48,7 @@ const Leaderboard = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Typing Leaderboard — Top Typists & Rankings" description="See the top typists on Typing Master leaderboard." keywords="typing leaderboard, top typists" breadcrumbs={[{name:"Home",path:"/"},{name:"Leaderboard",path:"/leaderboard"}]} />
       <Navbar />
       <AdLayout>
       <main className="container mx-auto px-4 py-8 flex-1">

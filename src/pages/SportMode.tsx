@@ -20,6 +20,7 @@ import {
   competitionParagraphs,
 } from "@/lib/competitionManager";
 import jsPDF from "jspdf";
+import SEO from "@/components/SEO";
 
 type Phase = 'setup' | 'register' | 'countdown' | 'typing' | 'result';
 
@@ -241,6 +242,7 @@ const SportMode = () => {
     const allResults = getLeaderboard();
     return (
       <div className="min-h-screen flex flex-col bg-background overflow-x-hidden">
+      <SEO title="Sport Mode — Live Typing Competition" description="Live typing competition mode with synced countdown and local leaderboard." keywords="typing competition, sport typing mode" breadcrumbs={[{name:"Home",path:"/"},{name:"Sport Mode",path:"/sport-mode"}]} />
         <Navbar />
         <div className="flex-1 container mx-auto px-4 py-6 max-w-5xl">
           <div className="text-center mb-8">

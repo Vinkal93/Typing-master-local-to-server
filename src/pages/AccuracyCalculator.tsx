@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Target } from "lucide-react";
+import SEO from "@/components/SEO";
 
 const AccuracyCalculator = () => {
   const [totalChars, setTotalChars] = useState("");
@@ -26,6 +27,7 @@ const AccuracyCalculator = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Typing Accuracy Calculator — Free Online Tool" description="Free typing accuracy calculator. Compute typing accuracy percentage instantly." keywords="typing accuracy calculator, accuracy percentage" breadcrumbs={[{name:"Home",path:"/"},{name:"Accuracy Calculator",path:"/accuracy-calculator"}]} />
       <Navbar />
       <AdLayout>
         <main className="container mx-auto px-4 py-8 flex-1">

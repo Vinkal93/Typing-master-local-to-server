@@ -10,6 +10,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { saveTestRecord } from "@/lib/progressTracker";
 import { trackMissedKeys } from "@/lib/missedKeysTracker";
 import { Trophy, RotateCcw, Clock, AlertTriangle } from "lucide-react";
+import SEO from "@/components/SEO";
 
 const cpctTexts = {
   english: [
@@ -91,6 +92,7 @@ const CPCTMock = () => {
   if (!isStarted) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="CPCT Mock Test — Free Online CPCT Typing Test" description="Free CPCT mock typing test online. Practice with real exam paragraphs and instant WPM analysis." keywords="cpct mock test, cpct typing test, cpct online practice" breadcrumbs={[{name:"Home",path:"/"},{name:"CPCT Mock",path:"/cpct-mock"}]} />
         <Navbar />
         <main className="container mx-auto px-4 py-8 flex-1 flex items-center justify-center">
           <Card className="p-8 max-w-lg text-center">

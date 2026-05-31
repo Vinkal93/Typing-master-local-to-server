@@ -6,6 +6,7 @@ import AdLayout from "@/components/AdLayout";
 import AdBanner from "@/components/AdBanner";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
+import SEO from "@/components/SEO";
 
 const HindiTypingTest = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const HindiTypingTest = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Hindi Typing Test — Free Online Mangal / Kruti Dev Practice" description="Free Hindi typing test online with Mangal and Kruti Dev font support. Practice Inscript and Remington layouts for CPCT and government exams." keywords="hindi typing test, mangal typing, kruti dev typing, cpct hindi typing" breadcrumbs={[{name:"Home",path:"/"},{name:"Hindi Typing Test",path:"/hindi-typing-test"}]} />
       <Navbar />
       <AdLayout>
         <main className="container mx-auto px-4 py-8 flex-1">

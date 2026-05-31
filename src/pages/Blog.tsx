@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { getAllPublishedBlogs } from "@/lib/adminBlogStore";
 import { Clock, ArrowRight } from "lucide-react";
+import SEO from "@/components/SEO";
 
 const Blog = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const Blog = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Typing Master Blog — Tips, Guides & Speed Improvement" description="Read the Typing Master blog by Vinkal Prajapati for typing tips, finger placement guides, exam preparation and speed improvement strategies." keywords="typing blog, typing tips, typing speed guide" breadcrumbs={[{name:"Home",path:"/"},{name:"Blog",path:"/blog"}]} />
       <Navbar />
       <AdLayout>
         <main className="container mx-auto px-4 py-8 flex-1">

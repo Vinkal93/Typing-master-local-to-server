@@ -2,12 +2,14 @@ import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AdLayout from "@/components/AdLayout";
+import SEO from "@/components/SEO";
 
 const About = () => {
   useEffect(() => { document.title = "About Us | Free Typing Test Online"; }, []);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="About Typing Master by Vinkal Prajapati" description="Learn about Typing Master, a free typing platform built by Vinkal Prajapati to help students master typing skills." keywords="about typing master, vinkal prajapati typing" breadcrumbs={[{name:"Home",path:"/"},{name:"About",path:"/about"}]} />
       <Navbar />
       <AdLayout showSidebar={false}>
         <main className="container mx-auto px-4 py-8 flex-1 max-w-4xl">

@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import AdLayout from "@/components/AdLayout";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getMissedKeysData } from "@/lib/missedKeysTracker";
+import SEO from "@/components/SEO";
 
 const fingerMap: Record<string, { finger: string; hand: string }> = {
   'q': { finger: 'Left Pinky', hand: 'left' }, 'a': { finger: 'Left Pinky', hand: 'left' }, 'z': { finger: 'Left Pinky', hand: 'left' },
@@ -57,6 +58,7 @@ const FingerHeatmap = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Finger Heatmap — Visualize Your Typing Errors" description="Interactive finger heatmap to visualize typing errors and weak fingers." keywords="finger heatmap, typing finger analysis" breadcrumbs={[{name:"Home",path:"/"},{name:"Finger Heatmap",path:"/finger-heatmap"}]} />
       <Navbar />
       <AdLayout>
       <main className="container mx-auto px-4 py-8 flex-1">

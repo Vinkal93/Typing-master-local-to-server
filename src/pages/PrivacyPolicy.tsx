@@ -1,12 +1,14 @@
 import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 const PrivacyPolicy = () => {
   useEffect(() => { document.title = "Privacy Policy | Free Typing Test Online"; }, []);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Privacy Policy — Typing Master by Vinkal Prajapati" description="Read the privacy policy of Typing Master by Vinkal Prajapati." keywords="privacy policy" breadcrumbs={[{name:"Home",path:"/"},{name:"Privacy Policy",path:"/privacy-policy"}]} />
       <Navbar />
       <main className="container mx-auto px-4 py-8 flex-1 max-w-4xl">
         <h1 className="text-4xl font-bold text-foreground mb-6">Privacy Policy</h1>

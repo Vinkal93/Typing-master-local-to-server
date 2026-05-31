@@ -1,12 +1,14 @@
 import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 const TermsAndConditions = () => {
   useEffect(() => { document.title = "Terms and Conditions | Free Typing Test Online"; }, []);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Terms and Conditions — Typing Master" description="Terms and conditions for using Typing Master by Vinkal Prajapati." keywords="terms and conditions" breadcrumbs={[{name:"Home",path:"/"},{name:"Terms",path:"/terms-and-conditions"}]} />
       <Navbar />
       <main className="container mx-auto px-4 py-8 flex-1 max-w-4xl">
         <h1 className="text-4xl font-bold text-foreground mb-6">Terms and Conditions</h1>

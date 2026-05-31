@@ -10,6 +10,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { FileDown } from "lucide-react";
 import { getProgressData, getAverageWpm, getAverageAccuracy } from "@/lib/progressTracker";
 import jsPDF from "jspdf";
+import SEO from "@/components/SEO";
 
 const ErrorAnalysis = () => {
   const { isHindi } = useLanguage();
@@ -68,6 +69,7 @@ const ErrorAnalysis = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Typing Error Analysis — Character & Word Heatmap" description="Detailed character and word error analysis with PDF export." keywords="typing error analysis, typing heatmap" breadcrumbs={[{name:"Home",path:"/"},{name:"Error Analysis",path:"/error-analysis"}]} />
       <Navbar />
       <AdLayout>
       <main className="container mx-auto px-4 py-8 flex-1">

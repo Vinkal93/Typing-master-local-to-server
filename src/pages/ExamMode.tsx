@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import SEO from "@/components/SEO";
 
 interface ExamConfig {
   name: string;
@@ -438,6 +439,7 @@ const ExamMode = () => {
 
     return (
       <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Typing Exam Mode — Government Typing Test Practice" description="Practice government typing exams with 25+ templates including SSC, CPCT, BSF and Court exams." keywords="typing exam practice, ssc typing test, cpct mock, govt typing exam" breadcrumbs={[{name:"Home",path:"/"},{name:"Exam Mode",path:"/exam"}]} />
         <Navbar />
         <main className="container mx-auto px-4 py-8 flex-1">
           <div className="max-w-5xl mx-auto">

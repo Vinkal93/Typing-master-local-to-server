@@ -15,6 +15,7 @@ import AdLayout from "@/components/AdLayout";
 import { curriculum, getTotalLessons, isLessonUnlocked, FREE_LESSON_COUNT } from "@/lib/curriculumData";
 import { getProgressData } from "@/lib/progressTracker";
 import {
+import SEO from "@/components/SEO";
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from "recharts";
 
@@ -61,6 +62,7 @@ const StudentDashboard = () => {
 
   return (
     <div className={`min-h-screen flex flex-col ${isPremiumUI ? 'bg-gradient-to-br from-background via-background to-[hsl(45,30%,95%)]' : 'bg-background'}`}>
+      <SEO title="Student Dashboard — Typing Master Learning Hub" description="Your personalized typing learning dashboard with progress, lessons and achievements." keywords="student dashboard, typing learning" breadcrumbs={[{name:"Home",path:"/"},{name:"Dashboard",path:"/dashboard"}]} />
       <Navbar />
       <AdLayout>
         <main className="container mx-auto px-4 py-8 flex-1">

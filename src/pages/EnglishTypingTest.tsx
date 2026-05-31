@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import AdLayout from "@/components/AdLayout";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
+import SEO from "@/components/SEO";
 
 const EnglishTypingTest = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const EnglishTypingTest = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="English Typing Test — Free WPM Test Online" description="Free English typing test. Check your WPM, accuracy and improve with random paragraphs and real-time analytics." keywords="english typing test, wpm test, english typing speed" breadcrumbs={[{name:"Home",path:"/"},{name:"English Typing Test",path:"/english-typing-test"}]} />
       <Navbar />
       <AdLayout>
         <main className="container mx-auto px-4 py-8 flex-1 text-center">

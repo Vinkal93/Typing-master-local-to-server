@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import AdLayout from "@/components/AdLayout";
 import { saveTestRecord, markLessonComplete } from "@/lib/progressTracker";
 import { trackMissedKeys } from "@/lib/missedKeysTracker";
+import SEO from "@/components/SEO";
 
 interface TestStats {
   wpm: number;
@@ -147,6 +148,7 @@ const PracticeMode = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="Typing Practice — Free Online Practice Sessions" description="Free typing practice sessions with random and custom paragraphs." keywords="typing practice, free typing practice" breadcrumbs={[{name:"Home",path:"/"},{name:"Practice",path:"/practice"}]} />
       <Navbar />
       <AdLayout>
 

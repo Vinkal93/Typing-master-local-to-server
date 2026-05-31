@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calculator } from "lucide-react";
+import SEO from "@/components/SEO";
 
 const WpmCalculator = () => {
   const [totalWords, setTotalWords] = useState("");
@@ -29,6 +30,7 @@ const WpmCalculator = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO title="WPM Calculator — Free Words Per Minute Calculator Online" description="Calculate your typing WPM instantly. Free words per minute calculator with accuracy breakdown." keywords="wpm calculator, words per minute calculator, typing speed calculator" breadcrumbs={[{name:"Home",path:"/"},{name:"WPM Calculator",path:"/wpm-calculator"}]} />
       <Navbar />
       <AdLayout>
         <main className="container mx-auto px-4 py-8 flex-1">
