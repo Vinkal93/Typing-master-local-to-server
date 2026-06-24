@@ -159,7 +159,7 @@ const Checkout = () => {
 
   return (
     <>
-      <SEO title={`Checkout — ${plan.name} Plan`} description="Secure checkout for Typing Master premium plans." canonical="https://typingmaster2.vercel.app/checkout" />
+      <SEO title={`Checkout — ${plan.name} Plan`} description="Secure checkout for Typing Master premium plans." />
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
         <main className="flex-1 container mx-auto px-4 py-8 max-w-6xl">

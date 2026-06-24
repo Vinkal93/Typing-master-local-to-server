@@ -90,7 +90,7 @@ const StudentProfile = () => {
 
   return (
     <>
-      <SEO title="My Profile — Typing Master" description="Manage your typing profile, subscription, and account." canonical="https://typingmaster2.vercel.app/profile" />
+      <SEO title="My Profile — Typing Master" description="Manage your typing profile, subscription, and account." />
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
         <main className="flex-1 container mx-auto px-4 py-8 max-w-5xl">

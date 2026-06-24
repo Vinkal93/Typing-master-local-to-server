@@ -34,7 +34,7 @@ const Pricing = () => {
       <SEO
         title="Pricing — Typing Master Premium Plans by Vinkal Prajapati"
         description="Affordable typing premium plans starting at ₹49/month. Unlock advanced exam mode, AI drills, certificates and more for SSC, BSF, CPCT preparation."
-        canonical="https://typingmaster2.vercel.app/pricing"
+       
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
