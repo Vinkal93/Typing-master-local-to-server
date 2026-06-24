@@ -30,6 +30,7 @@ import { StudentProfile, getProfiles, saveProfile, saveAllProfiles } from "@/con
 import { AdvancedBlogEditor } from "@/components/admin/AdvancedBlogEditor";
 import { MediaLibrary } from "@/components/admin/MediaLibrary";
 import { AdminBlog as StoredBlog, getAdminBlogs as getStoredBlogs, deleteAdminBlog, analyzeSeo, getViews } from "@/lib/adminBlogStore";
+import PlansManager from "@/components/admin/PlansManager";
 
 const COLORS = [
   'hsl(198, 93%, 60%)', 'hsl(24, 95%, 53%)', 'hsl(142, 71%, 45%)',
@@ -228,10 +229,14 @@ const AdminDashboard = () => {
         {/* Main Tabs */}
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList className="flex flex-wrap h-auto gap-1">
-            {['overview', 'students', 'payments', 'blogs', 'media', 'seo', 'analytics', 'settings'].map(tab => (
+            {['overview', 'students', 'payments', 'plans', 'blogs', 'media', 'seo', 'analytics', 'settings'].map(tab => (
               <TabsTrigger key={tab} value={tab} className="capitalize">{tab}</TabsTrigger>
             ))}
           </TabsList>
+
+          <TabsContent value="plans" className="space-y-4">
+            <PlansManager />
+          </TabsContent>
 
           {/* Overview */}
           <TabsContent value="overview" className="space-y-4">
