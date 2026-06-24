@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Keyboard } from "lucide-react";
+import { Keyboard, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Switch } from "@/components/ui/switch";
@@ -34,6 +34,13 @@ const Navbar = () => {
             <Label htmlFor="hindi-mode" className="text-sm hidden sm:inline">HI</Label>
           </div>
 
+          <Button
+            size="sm"
+            onClick={() => navigate("/pricing")}
+            className="bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white border-0 hidden sm:inline-flex"
+          >
+            <Sparkles className="h-3.5 w-3.5 mr-1" /> Pricing
+          </Button>
           <StudentAuthDialog />
           <SettingsDialog />
         </div>

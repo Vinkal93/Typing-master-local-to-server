@@ -118,9 +118,15 @@ const StudentAuthDialog = () => {
                 <span className="font-medium text-foreground">{profile.completedLessons.length}</span>
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button className="flex-1" onClick={() => { setOpen(false); navigate("/dashboard"); }}>
-                My Dashboard
+            <div className="grid grid-cols-2 gap-2">
+              <Button onClick={() => { setOpen(false); navigate("/dashboard"); }}>
+                Dashboard
+              </Button>
+              <Button variant="outline" onClick={() => { setOpen(false); navigate("/profile"); }}>
+                My Profile
+              </Button>
+              <Button variant="outline" onClick={() => { setOpen(false); navigate("/pricing"); }}>
+                Upgrade
               </Button>
               <Button variant="destructive" size="sm" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-1" /> Logout

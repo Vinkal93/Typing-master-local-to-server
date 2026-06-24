@@ -56,6 +56,9 @@ import CoursePage from "./pages/CoursePage";
 import LessonPractice from "./pages/LessonPractice";
 import AdvancedExamMode from "./pages/AdvancedExamMode";
 import SeoStatus from "./pages/SeoStatus";
+import Pricing from "./pages/Pricing";
+import Checkout from "./pages/Checkout";
+import StudentProfile from "./pages/StudentProfile";
 
 const queryClient = new QueryClient();
 
@@ -114,6 +117,9 @@ const AppRoutes = () => (
       <Route path="/lesson/:lessonId" element={<LessonPractice />} />
       <Route path="/advanced-exam" element={<AdvancedExamMode />} />
       <Route path="/seo-status" element={<SeoStatus />} />
+      <Route path="/pricing" element={<Pricing />} />
+      <Route path="/checkout" element={<Checkout />} />
+      <Route path="/profile" element={<StudentProfile />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </>
