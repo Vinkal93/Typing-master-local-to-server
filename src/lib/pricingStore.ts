@@ -73,6 +73,9 @@ export interface Transaction {
   couponCode?: string;
   paymentId?: string;
   orderId?: string;
+  signature?: string;
+  verified?: boolean;
+  verificationNote?: string;
   status: 'pending' | 'success' | 'failed' | 'refunded';
   createdAt: number;
   durationMonths: number;
