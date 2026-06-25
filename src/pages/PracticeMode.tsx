@@ -139,11 +139,12 @@ const PracticeMode = () => {
   };
 
   const handleStartCustom = () => {
-    if (customInput.trim()) {
-      setText(customInput.trim());
-      setCustomInput("");
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
+    const trimmed = customInput.trim();
+    if (!trimmed) return;
+    const limited = customLimit > 0 ? trimmed.slice(0, customLimit) : trimmed;
+    setText(limited);
+    setCustomInput("");
+    setTimeout(() => inputRef.current?.focus(), 100);
   };
 
   const getCharacterClass = (index: number) => {
@@ -174,10 +175,35 @@ const PracticeMode = () => {
             </p>
             <Textarea
               value={customInput}
-              onChange={(e) => setCustomInput(e.target.value)}
+              onChange={(e) => {
+                const v = e.target.value;
+                setCustomInput(customLimit > 0 ? v.slice(0, customLimit) : v);
+              }}
               placeholder="अपना text यहां paste करें..."
-              className="min-h-[200px] text-lg mb-4"
+              className="min-h-[200px] text-lg mb-2"
             />
+            <div className="flex items-center justify-between mb-4 text-xs">
+              <span className={`${customLimit > 0 && customInput.length >= customLimit ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
+                {customInput.length}{customLimit > 0 ? ` / ${customLimit}` : ''} characters
+                {customLimit > 0 && (
+                  <span className="ml-2 inline-flex items-center gap-1">
+                    <Lock className="h-3 w-3" />
+                    {profile ? 'Basic limit' : 'Free limit'}
+                  </span>
+                )}
+              </span>
+              {!isPremium && (
+                <Link to="/pricing" className="inline-flex items-center gap-1 text-primary hover:underline font-semibold">
+                  <Sparkles className="h-3 w-3" /> Upgrade for unlimited
+                </Link>
+              )}
+            </div>
+            {customLimit > 0 && customInput.length >= customLimit && (
+              <div className="mb-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs text-amber-700 dark:text-amber-400">
+                ⚠ You've hit the {profile ? 'Basic' : 'Free'} character limit. Upgrade to{' '}
+                <Link to="/pricing" className="underline font-semibold">Pro or Elite</Link> for unlimited custom text practice.
+              </div>
+            )}
             <Button onClick={handleStartCustom} size="lg" className="w-full" disabled={!customInput.trim()}>
               Start Practice
             </Button>
