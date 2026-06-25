@@ -26,6 +26,13 @@ interface TestStats {
 const PracticeMode = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { isPremium, profile } = useStudent();
+
+  // Plan-based custom text character limits
+  // Free (logged-out / no premium) → 250 chars
+  // Premium (Pro/Elite) → unlimited (0)
+  // Logged-in but no premium (treated as Basic free-trial) → 800 chars
+  const customLimit = isPremium ? 0 : profile ? 800 : 250;
   
   const mode = searchParams.get("mode") || "custom";
   const urlText = searchParams.get("text");
