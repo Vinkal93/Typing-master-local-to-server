@@ -17,6 +17,8 @@ import SEO from "@/components/SEO";
 import { useStudent, saveProfile, getProfiles } from "@/contexts/StudentContext";
 import { useToast } from "@/hooks/use-toast";
 import { getTransactions, getPlans, Transaction } from "@/lib/pricingStore";
+import { downloadInvoice, invoiceNumber } from "@/lib/invoiceGenerator";
+import { Download, FileText } from "lucide-react";
 
 interface ProfileExtras {
   phone?: string;
@@ -298,22 +300,49 @@ const StudentProfile = () => {
                     <p className="text-sm text-muted-foreground text-center py-8">No transactions yet</p>
                   ) : (
                     <div className="space-y-2">
-                      {txns.map(t => (
-                        <div key={t.id} className="flex items-center justify-between p-3 border border-border rounded-lg">
-                          <div>
-                            <p className="font-semibold text-sm text-foreground">{t.planName} • {t.durationMonths}mo</p>
-                            <p className="text-xs text-muted-foreground">{new Date(t.createdAt).toLocaleString()}</p>
-                            {t.paymentId && <p className="text-[10px] text-muted-foreground font-mono">{t.paymentId}</p>}
+                      {txns.map(t => {
+                        const extra = extras;
+                        const party = {
+                          name: profile.displayName,
+                          email: profile.email,
+                          studentId: profile.studentId,
+                          phone: extra.phone,
+                          city: extra.city,
+                          state: extra.state,
+                          pincode: extra.pincode,
+                        };
+                        return (
+                          <div key={t.id} className="flex items-center justify-between gap-3 p-3 border border-border rounded-lg flex-wrap">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                                <p className="font-semibold text-sm text-foreground">{t.planName} • {t.durationMonths}mo</p>
+                                <span className="text-[10px] font-mono text-muted-foreground">{invoiceNumber(t)}</span>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-0.5">{new Date(t.createdAt).toLocaleString()}</p>
+                              {t.paymentId && <p className="text-[10px] text-muted-foreground font-mono truncate">{t.paymentId}</p>}
+                              {t.verified === false && (
+                                <p className="text-[10px] text-destructive">⚠ Not verified — {t.verificationNote}</p>
+                              )}
+                              {t.verified && (
+                                <p className="text-[10px] text-green-500">✓ Signature verified</p>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold text-foreground">₹{t.amount}</p>
+                              <Badge variant={t.status === 'success' ? 'default' : t.status === 'pending' ? 'secondary' : 'destructive'} className="text-[10px]">
+                                {t.status === 'success' && <CheckCircle2 className="h-3 w-3 mr-1" />}
+                                {t.status.toUpperCase()}
+                              </Badge>
+                            </div>
+                            {t.status === 'success' && (
+                              <Button size="sm" variant="outline" onClick={() => downloadInvoice(t, party)}>
+                                <Download className="h-3.5 w-3.5 mr-1" /> Invoice
+                              </Button>
+                            )}
                           </div>
-                          <div className="text-right">
-                            <p className="font-bold text-foreground">₹{t.amount}</p>
-                            <Badge variant={t.status === 'success' ? 'default' : t.status === 'pending' ? 'secondary' : 'destructive'} className="text-[10px]">
-                              {t.status === 'success' && <CheckCircle2 className="h-3 w-3 mr-1" />}
-                              {t.status.toUpperCase()}
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </CardContent>
