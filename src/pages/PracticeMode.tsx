@@ -11,6 +11,9 @@ import AdLayout from "@/components/AdLayout";
 import { saveTestRecord, markLessonComplete } from "@/lib/progressTracker";
 import { trackMissedKeys } from "@/lib/missedKeysTracker";
 import SEO from "@/components/SEO";
+import { useStudent } from "@/contexts/StudentContext";
+import { Lock, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface TestStats {
   wpm: number;
