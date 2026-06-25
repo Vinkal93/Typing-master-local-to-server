@@ -51,7 +51,9 @@ export interface Offer {
 
 export interface RazorpayConfig {
   keyId: string;
-  keySecret?: string; // stored locally; admin reference only
+  keySecret?: string; // used for client-side payment signature verification
+  webhookSecret?: string; // shared secret for server webhook HMAC verification
+  webhookUrl?: string; // your edge function endpoint (eg /api/razorpay/webhook)
   enabled: boolean;
   testMode: boolean;
   merchantName: string;
@@ -73,6 +75,9 @@ export interface Transaction {
   couponCode?: string;
   paymentId?: string;
   orderId?: string;
+  signature?: string;
+  verified?: boolean;
+  verificationNote?: string;
   status: 'pending' | 'success' | 'failed' | 'refunded';
   createdAt: number;
   durationMonths: number;

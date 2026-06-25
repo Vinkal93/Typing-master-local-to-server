@@ -113,14 +113,36 @@ const Checkout = () => {
         months: String(months),
       },
       theme: { color: rzpConfig.themeColor || '#8b5cf6' },
-      handler: (resp: any) => {
-        // Mark successful
+      handler: async (resp: any) => {
+        // 🔐 Signature verification — only upgrade after success
+        const { verifyPaymentSignature } = await import('@/lib/razorpayVerify');
+        const verify = await verifyPaymentSignature({
+          orderId: resp.razorpay_order_id,
+          paymentId: resp.razorpay_payment_id,
+          signature: resp.razorpay_signature,
+          keySecret: rzpConfig.keySecret,
+        });
+
         updateTransaction(txn.id, {
-          status: 'success',
+          status: verify.ok ? 'success' : 'failed',
           paymentId: resp.razorpay_payment_id,
           orderId: resp.razorpay_order_id,
+          signature: resp.razorpay_signature,
+          verified: verify.ok,
+          verificationNote: verify.reason,
         });
-        // Upgrade profile
+
+        if (!verify.ok) {
+          toast({
+            title: 'Payment verification failed',
+            description: verify.reason || 'Signature mismatch. Plan not activated.',
+            variant: 'destructive',
+          });
+          setProcessing(false);
+          return;
+        }
+
+        // ✅ Verified — upgrade profile
         const profiles = getProfiles();
         if (profiles[user.uid]) {
           profiles[user.uid].plan = 'premium';
@@ -129,8 +151,8 @@ const Checkout = () => {
           saveProfile(profiles[user.uid]);
         }
         toast({
-          title: "🎉 Payment Successful!",
-          description: `${plan.name} plan activated for ${months} month(s)`,
+          title: '🎉 Payment Verified & Activated!',
+          description: `${plan.name} plan active for ${months} month(s)`,
         });
         navigate(`/profile?success=1&txn=${txn.id}`);
       },

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Check, X, Sparkles, Crown, Shield, Zap } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -154,6 +155,100 @@ const Pricing = () => {
                 </Card>
               );
             })}
+          </div>
+
+          {/* Full feature comparison table */}
+          <div className="max-w-6xl mx-auto mt-16">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground text-center mb-2">
+              Compare All Features
+            </h2>
+            <p className="text-center text-muted-foreground mb-6 text-sm">
+              See exactly what's unlocked at every tier
+            </p>
+            <Card className="border-border overflow-hidden">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/40">
+                      <TableHead className="font-bold text-foreground">Feature</TableHead>
+                      <TableHead className="text-center font-bold text-muted-foreground">Free</TableHead>
+                      {plans.map(p => (
+                        <TableHead key={p.id} className={`text-center font-bold ${p.popular ? 'text-violet-500' : 'text-foreground'}`}>
+                          {p.icon} {p.name}
+                          {p.popular && <Badge className="ml-1 bg-violet-500 text-white text-[9px]">POPULAR</Badge>}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {[
+                      { label: 'Beginner Lessons', free: '5 / 57', basic: '12 / 57', pro: 'All 57', elite: 'All 57' },
+                      { label: 'Advanced Exam Mode', free: '2 / day', basic: '5 / day', pro: 'Unlimited', elite: 'Unlimited' },
+                      { label: 'Custom Text Practice', free: 'Up to 250 chars', basic: 'Up to 800 chars', pro: 'Unlimited', elite: 'Unlimited' },
+                      { label: 'Typing Games', free: '2 / 6', basic: '4 / 6', pro: 'All 6', elite: 'All 6' },
+                      { label: 'Smart AI Drills', free: false, basic: false, pro: true, elite: true },
+                      { label: 'Advanced Analytics', free: false, basic: 'Basic', pro: true, elite: true },
+                      { label: 'Hindi (Inscript + Remington)', free: 'Inscript only', basic: true, pro: true, elite: true },
+                      { label: 'Error Heatmap', free: false, basic: true, pro: true, elite: true },
+                      { label: 'Finger Heatmap', free: false, basic: false, pro: true, elite: true },
+                      { label: 'CPCT / SSC / BSF Mocks', free: false, basic: false, pro: 'Limited', elite: 'All' },
+                      { label: 'PDF Certificates', free: false, basic: false, pro: false, elite: true },
+                      { label: 'Sport Mode (Competition)', free: false, basic: false, pro: false, elite: true },
+                      { label: 'Personal AI Coach', free: false, basic: false, pro: false, elite: true },
+                      { label: 'Premium Gold Dashboard', free: false, basic: false, pro: false, elite: true },
+                      { label: 'Ad-Free Experience', free: false, basic: false, pro: true, elite: true },
+                      { label: 'Priority Leaderboard', free: false, basic: false, pro: true, elite: true },
+                      { label: 'Email Support', free: false, basic: true, pro: true, elite: true },
+                      { label: 'Priority 24/7 Support', free: false, basic: false, pro: false, elite: true },
+                      { label: 'Downloadable Invoices', free: false, basic: true, pro: true, elite: true },
+                    ].map((row, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="font-medium text-foreground">{row.label}</TableCell>
+                        {(['free', 'basic', 'pro', 'elite'] as const).map(tier => {
+                          const v = (row as any)[tier];
+                          return (
+                            <TableCell key={tier} className="text-center">
+                              {v === true ? (
+                                <Check className="h-4 w-4 text-green-500 mx-auto" />
+                              ) : v === false ? (
+                                <X className="h-4 w-4 text-muted-foreground/40 mx-auto" />
+                              ) : (
+                                <span className="text-xs text-foreground">{v}</span>
+                              )}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    ))}
+                    <TableRow className="bg-muted/30 font-bold">
+                      <TableCell className="text-foreground">Price (per month)</TableCell>
+                      <TableCell className="text-center text-foreground">₹0</TableCell>
+                      {plans.map(p => (
+                        <TableCell key={p.id} className="text-center text-primary">₹{p.priceMonthly}</TableCell>
+                      ))}
+                    </TableRow>
+                    <TableRow>
+                      <TableCell></TableCell>
+                      <TableCell className="text-center">
+                        <Button size="sm" variant="outline" disabled>Current</Button>
+                      </TableCell>
+                      {plans.map(p => (
+                        <TableCell key={p.id} className="text-center">
+                          <Button
+                            size="sm"
+                            variant={p.popular ? 'default' : 'outline'}
+                            className={p.popular ? 'bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white border-0' : ''}
+                            onClick={() => handleSelect(p.id)}
+                          >
+                            Choose {p.name}
+                          </Button>
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
           </div>
 
           {/* Trust badges */}

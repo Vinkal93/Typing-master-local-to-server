@@ -244,7 +244,36 @@ export const PlansManager = () => {
                   {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
-              <p className="text-[10px] text-amber-500 mt-1">⚠ For full server-side order verification, also store the secret in your backend.</p>
+              <p className="text-[10px] text-amber-500 mt-1">⚠ Used to verify the payment signature returned by Razorpay before activating any plan.</p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-3 p-3 rounded-lg border border-violet-500/30 bg-violet-500/5">
+              <div className="sm:col-span-2">
+                <Label className="flex items-center gap-1 text-violet-500 font-semibold">🔐 Webhook Verification (Recommended)</Label>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  Configure a webhook in Razorpay Dashboard → Settings → Webhooks. Point it at the URL below.
+                  The server endpoint must call <code className="text-[10px] bg-muted px-1 rounded">verifyWebhookSignature()</code>
+                  from <code className="text-[10px] bg-muted px-1 rounded">src/lib/razorpayVerify.ts</code> using the secret below,
+                  then activate the plan only when verification returns true.
+                </p>
+              </div>
+              <div>
+                <Label>Webhook URL</Label>
+                <Input
+                  placeholder="https://your-domain.com/api/razorpay/webhook"
+                  value={rzp.webhookUrl || ''}
+                  onChange={e => setRzp({ ...rzp, webhookUrl: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Webhook Secret</Label>
+                <Input
+                  type="password"
+                  placeholder="whsec_••••••••••••"
+                  value={rzp.webhookSecret || ''}
+                  onChange={e => setRzp({ ...rzp, webhookSecret: e.target.value })}
+                />
+              </div>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-3">
