@@ -129,7 +129,8 @@ const AppRoutes = () => {
       </Routes>
     </GlobalAccessGuard>
   </>
-);
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
