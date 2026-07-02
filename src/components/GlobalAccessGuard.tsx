@@ -1,6 +1,14 @@
 import { ReactNode, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { getAccessConfig, isCurrentlyBlocked, isGateRequiredForRoute, isRouteUnlocked } from "@/lib/accessControl";
+import { 
+  getAccessConfig, 
+  isCurrentlyBlocked, 
+  isGateRequiredForRoute, 
+  isRouteUnlocked,
+  getDeviceFingerprint,
+  upsertGateVisitor,
+  checkActiveLicenseLive
+} from "@/lib/accessControl";
 import BlockedOverlay from "@/components/BlockedOverlay";
 import LicenseGate from "@/components/LicenseGate";
 import { Wrench, Rocket } from "lucide-react";
@@ -32,8 +40,29 @@ const GlobalAccessGuard = ({ children }: { children: ReactNode }) => {
 
   const isAdminRoute = location.pathname.startsWith('/admin');
 
+  // Visitor Tracking & Live Background License Validation
+  useEffect(() => {
+    if (isAdminRoute) return;
+    
+    // 1. Run live check on active license
+    checkActiveLicenseLive();
+    
+    // 2. Log active page session to Firestore for live admin panel tracking
+    const savedName = localStorage.getItem('tm_gate_name') || 'Guest';
+    const deviceId = getDeviceFingerprint();
+    const unlocked = isRouteUnlocked(location.pathname);
+    
+    upsertGateVisitor({ 
+      deviceId, 
+      name: savedName, 
+      route: location.pathname, 
+      unlocked 
+    });
+  }, [location.pathname, isAdminRoute]);
+
   const savedName = typeof window !== 'undefined' ? (localStorage.getItem('tm_gate_name') || undefined) : undefined;
   const blocked = isCurrentlyBlocked(savedName);
+  
   if (blocked.blocked && !isAdminRoute) return <BlockedOverlay />;
 
   if (cfg.maintenanceMode && !isAdminRoute) {

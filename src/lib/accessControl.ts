@@ -420,3 +420,45 @@ export const verifyLicenseWithFirebase = async (
     return { success: false, message: `Verification failed: ${error.message || 'Network error'}` };
   }
 };
+
+// ── Background Live Verification check (syncs status instantly) ──
+export const checkActiveLicenseLive = async () => {
+  const cfg = getAccessConfig();
+  if (!cfg.licenseGateEnabled) return;
+  
+  const grants = readGrants();
+  const activeGrants = Object.values(grants).filter(
+    g => g.version === (cfg.lockVersion || 1)
+  );
+  
+  if (activeGrants.length === 0) return;
+  
+  // Get the license key from first active local grant
+  const firstGrant = activeGrants[0];
+  const key = firstGrant.licenseUsed;
+  const deviceId = getDeviceFingerprint();
+  
+  try {
+    const docRef = doc(db, "licenses", key);
+    const docSnap = await getDoc(docRef);
+    
+    if (!docSnap.exists()) {
+      console.warn("[accessControl] License key no longer exists on server. Revoking.");
+      localStorage.removeItem(GRANTS_KEY);
+      window.dispatchEvent(new Event('tm-access-updated'));
+      return;
+    }
+    
+    const data = docSnap.data() as FirebaseLicense;
+    const now = Date.now();
+    
+    // Revoke local access if key is deactivated, expired, or reassigned
+    if (!data.isActive || (data.expiryDate && data.expiryDate < now) || data.deviceId !== deviceId) {
+      console.warn("[accessControl] License key is deactivated, expired, or bound to another device. Revoking.");
+      localStorage.removeItem(GRANTS_KEY);
+      window.dispatchEvent(new Event('tm-access-updated'));
+    }
+  } catch (err) {
+    console.warn("[accessControl] Background license validation failed:", err);
+  }
+};
