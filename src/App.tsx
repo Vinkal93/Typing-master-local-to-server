@@ -73,7 +73,9 @@ const AnalyticsTracker = () => {
   return null;
 };
 
-const AppRoutes = () => (
+const AppRoutes = () => {
+  useEffect(() => { import('./lib/accessControl').then(m => m.initAccessControlSync()); }, []);
+  return (
   <>
     <ScrollToTop />
     <AnalyticsTracker />
