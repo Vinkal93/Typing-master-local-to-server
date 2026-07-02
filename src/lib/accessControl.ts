@@ -24,8 +24,11 @@ export interface AccessConfig {
 
   // License gate for FastTrack / Lessons (and any registered gated route)
   licenseGateEnabled: boolean;
+  globalLock: boolean; // when true, EVERY non-public route requires license
+  lockVersion: number; // bumping this invalidates all previous grants
   licenseKeys: string[]; // any of these unlocks
   gatedRoutes: string[]; // pathnames guarded
+  publicRoutes: string[]; // never gated even under global lock
   gateContent: GateContent;
 
   // Blocked users/devices
