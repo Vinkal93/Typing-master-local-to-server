@@ -98,7 +98,7 @@ const AppRoutes = () => (
         <Route path="/full-history" element={<FullHistory />} />
         <Route path="/keyboard-guide" element={<KeyboardGuide />} />
         <Route path="/about-developer" element={<AboutDeveloper />} />
-        <Route path="/fast-track" element={<LicenseGate><FastTrack /></LicenseGate>} />
+        <Route path="/fast-track" element={<FastTrack />} />
         <Route path="/smart-practice" element={<SmartPractice />} />
         <Route path="/finger-heatmap" element={<FingerHeatmap />} />
         <Route path="/achievements" element={<Achievements />} />
