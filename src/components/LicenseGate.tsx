@@ -33,14 +33,16 @@ const LicenseGate = ({ children }: Props) => {
   const deviceId = useMemo(() => getDeviceFingerprint(), []);
 
   useEffect(() => {
-    const refresh = () => setCfg(getAccessConfig());
+    const refresh = () => { setCfg(getAccessConfig()); setUnlocked(isRouteUnlocked(location.pathname)); };
     window.addEventListener('tm-access-updated', refresh);
     window.addEventListener('storage', refresh);
     return () => {
       window.removeEventListener('tm-access-updated', refresh);
       window.removeEventListener('storage', refresh);
     };
-  }, []);
+  }, [location.pathname]);
+
+  useEffect(() => { setUnlocked(isRouteUnlocked(location.pathname)); }, [location.pathname]);
 
   const gateRequired = isGateRequiredForRoute(location.pathname);
   const blocked = isCurrentlyBlocked(name);
