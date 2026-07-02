@@ -1,7 +1,8 @@
 import { ReactNode, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { getAccessConfig, isCurrentlyBlocked } from "@/lib/accessControl";
+import { getAccessConfig, isCurrentlyBlocked, isGateRequiredForRoute, isRouteUnlocked } from "@/lib/accessControl";
 import BlockedOverlay from "@/components/BlockedOverlay";
+import LicenseGate from "@/components/LicenseGate";
 import { Wrench, Rocket } from "lucide-react";
 
 const FullPageMessage = ({ icon, title, message }: { icon: ReactNode; title: string; message: string }) => (
@@ -17,9 +18,10 @@ const FullPageMessage = ({ icon, title, message }: { icon: ReactNode; title: str
 const GlobalAccessGuard = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
   const [cfg, setCfg] = useState(getAccessConfig());
+  const [, setTick] = useState(0);
 
   useEffect(() => {
-    const r = () => setCfg(getAccessConfig());
+    const r = () => { setCfg(getAccessConfig()); setTick(t => t + 1); };
     window.addEventListener('tm-access-updated', r);
     window.addEventListener('storage', r);
     return () => {
@@ -28,7 +30,6 @@ const GlobalAccessGuard = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  // Admin routes always bypass guards so admin can toggle off maintenance
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   const savedName = typeof window !== 'undefined' ? (localStorage.getItem('tm_gate_name') || undefined) : undefined;
@@ -41,6 +42,11 @@ const GlobalAccessGuard = ({ children }: { children: ReactNode }) => {
 
   if (cfg.comingSoonPages.includes(location.pathname) && !isAdminRoute) {
     return <FullPageMessage icon={<Rocket className="h-8 w-8 text-primary" />} title="Coming Soon" message={cfg.comingSoonMessage} />;
+  }
+
+  // License gate: enforced globally so admin toggle instantly locks pages
+  if (isGateRequiredForRoute(location.pathname) && !isRouteUnlocked(location.pathname)) {
+    return <LicenseGate>{children}</LicenseGate>;
   }
 
   return <>{children}</>;
