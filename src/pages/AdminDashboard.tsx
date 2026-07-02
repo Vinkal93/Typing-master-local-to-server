@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getAccessConfig } from "@/lib/accessControl";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -41,6 +42,7 @@ const COLORS = [
 const AdminDashboard = () => {
   const { user, logout, isAdmin, loading } = useAdmin();
   const navigate = useNavigate();
+  const [accessCfg, setAccessCfg] = useState(getAccessConfig());
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [liveVisitors, setLiveVisitors] = useState(0);
   const [todayVisits, setTodayVisits] = useState(0);
@@ -65,6 +67,16 @@ const AdminDashboard = () => {
     const profiles = getProfiles();
     setStudents(Object.values(profiles));
   };
+
+  useEffect(() => {
+    const refresh = () => setAccessCfg(getAccessConfig());
+    window.addEventListener('tm-access-updated', refresh);
+    window.addEventListener('storage', refresh);
+    return () => {
+      window.removeEventListener('tm-access-updated', refresh);
+      window.removeEventListener('storage', refresh);
+    };
+  }, []);
 
   useEffect(() => {
     if (!loading && !isAdmin) {
@@ -184,54 +196,102 @@ const AdminDashboard = () => {
   const activeStudents = students.filter(s => (s.completedLessons?.length || 0) > 0);
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Shield className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold text-foreground">Admin Dashboard</h1>
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Premium background radial glows */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-violet-500/5 rounded-full blur-[120px] pointer-events-none" />
+
+      <header className="border-b border-border bg-card/60 backdrop-blur-md sticky top-0 z-50 shadow-sm transition-all duration-300">
+        <div className="container mx-auto px-4 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-primary via-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-lg shadow-primary/10">
+              <Shield className="h-5.5 w-5.5 animate-pulse" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
+                Admin Control Room
+              </h1>
+              <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Typing Masterclass Console</p>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground hidden sm:inline">{user?.email}</span>
-            <Button variant="outline" size="sm" onClick={() => navigate("/")}>
-              <ArrowUpRight className="h-4 w-4 mr-1" /> View Site
-            </Button>
-            <Button variant="destructive" size="sm" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-1" /> Logout
-            </Button>
+
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+            {/* Quick Live Status Indicators */}
+            <div className="flex items-center gap-2 bg-muted/40 p-1 rounded-lg border border-border/80">
+              <Badge variant="outline" className={`text-[10px] font-extrabold px-2 py-0.5 uppercase border-0 flex items-center gap-1 shadow-sm ${
+                accessCfg.maintenanceMode 
+                  ? 'bg-red-500/10 text-red-500' 
+                  : 'bg-green-500/10 text-green-500'
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${accessCfg.maintenanceMode ? 'bg-red-500' : 'bg-green-500 animate-pulse'}`} />
+                {accessCfg.maintenanceMode ? 'Maintenance' : 'Live'}
+              </Badge>
+              <Badge variant="outline" className={`text-[10px] font-extrabold px-2 py-0.5 uppercase border-0 flex items-center gap-1 shadow-sm ${
+                accessCfg.licenseGateEnabled || accessCfg.globalLock
+                  ? 'bg-amber-500/10 text-amber-500' 
+                  : 'bg-neutral-500/20 text-muted-foreground'
+              }`}>
+                <Lock className="h-3 w-3 text-amber-500/80" />
+                {accessCfg.globalLock ? 'Strict Lock' : accessCfg.licenseGateEnabled ? 'Gate Lock' : 'Open'}
+              </Badge>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground font-mono bg-muted/40 px-2 py-1 rounded border border-border/60 hidden lg:inline-block">{user?.email}</span>
+              <Button variant="outline" size="sm" onClick={() => navigate("/")} className="h-8 text-xs font-semibold hover:bg-accent/40">
+                <ArrowUpRight className="h-3.5 w-3.5 mr-1" /> View Site
+              </Button>
+              <Button variant="destructive" size="sm" onClick={handleLogout} className="h-8 text-xs font-semibold bg-red-600 hover:bg-red-500 shadow-md">
+                <LogOut className="h-3.5 w-3.5 mr-1" /> Logout
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 space-y-6">
+      <main className="container mx-auto px-4 py-8 space-y-8 relative z-10">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {[
-            { icon: Activity, label: 'Live Visitors', value: liveVisitors, color: 'text-[hsl(142,71%,45%)]' },
-            { icon: Eye, label: "Today's Visits", value: todayVisits, color: 'text-primary' },
-            { icon: Users, label: 'Total Students', value: students.length, color: 'text-foreground' },
-            { icon: Clock, label: 'Pending', value: pendingStudents.length, color: 'text-[hsl(45,80%,50%)]' },
-            { icon: Crown, label: 'Premium', value: premiumStudents.length, color: 'text-[hsl(45,80%,50%)]' },
-            { icon: MousePointer, label: 'Page Views', value: analytics?.totalVisits || 0, color: 'text-foreground' },
+            { icon: Activity, label: 'Live Visitors', value: liveVisitors, color: 'text-[hsl(142,71%,45%)]', bg: 'from-green-500/5 to-transparent' },
+            { icon: Eye, label: "Today's Visits", value: todayVisits, color: 'text-primary', bg: 'from-primary/5 to-transparent' },
+            { icon: Users, label: 'Total Students', value: students.length, color: 'text-foreground', bg: 'from-muted-foreground/5 to-transparent' },
+            { icon: Clock, label: 'Pending Users', value: pendingStudents.length, color: 'text-[hsl(45,80%,50%)]', bg: 'from-amber-500/5 to-transparent' },
+            { icon: Crown, label: 'Premium Users', value: premiumStudents.length, color: 'text-[hsl(45,80%,50%)]', bg: 'from-yellow-500/5 to-transparent' },
+            { icon: MousePointer, label: 'Page Views', value: analytics?.totalVisits || 0, color: 'text-foreground', bg: 'from-muted-foreground/5 to-transparent' },
           ].map((stat, i) => (
-            <Card key={i} className="border-border">
-              <CardHeader className="pb-2">
-                <CardDescription className="flex items-center gap-2">
-                  <stat.icon className={`h-4 w-4 ${stat.color}`} /> {stat.label}
+            <Card key={i} className="border-border/50 bg-card/45 backdrop-blur-sm hover:shadow-md hover:border-primary/20 transition-all duration-300 group relative overflow-hidden">
+              <div className={`absolute inset-0 bg-gradient-to-br ${stat.bg} opacity-50`} />
+              <CardHeader className="pb-2 relative z-10">
+                <CardDescription className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider">
+                  <stat.icon className={`h-4 w-4 shrink-0 transition-transform duration-300 group-hover:scale-110 ${stat.color}`} /> {stat.label}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+              <CardContent className="relative z-10">
+                <p className="text-3xl font-extrabold text-foreground tracking-tight">{stat.value}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
         {/* Main Tabs */}
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="flex flex-wrap h-auto gap-1">
-            {['overview', 'students', 'payments', 'plans', 'access', 'blogs', 'media', 'seo', 'analytics', 'settings'].map(tab => (
-              <TabsTrigger key={tab} value={tab} className="capitalize">{tab}</TabsTrigger>
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="flex flex-wrap h-auto gap-1 bg-muted/40 p-1 border border-border/80 rounded-lg max-w-max">
+            {[
+              { id: 'overview', label: 'Overview' },
+              { id: 'students', label: 'Students' },
+              { id: 'payments', label: 'Payments' },
+              { id: 'plans', label: 'Plans' },
+              { id: 'access', label: 'Access Control' },
+              { id: 'blogs', label: 'Blog Posts' },
+              { id: 'media', label: 'Media Library' },
+              { id: 'seo', label: 'SEO Audit' },
+              { id: 'analytics', label: 'Analytics' },
+              { id: 'settings', label: 'Site Settings' },
+            ].map(tab => (
+              <TabsTrigger key={tab.id} value={tab.id} className="text-xs md:text-sm py-2 px-3.5 font-medium transition-all duration-200 capitalize">
+                {tab.label}
+              </TabsTrigger>
             ))}
           </TabsList>
 
