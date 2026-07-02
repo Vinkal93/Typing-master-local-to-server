@@ -42,7 +42,7 @@ const LicenseGate = ({ children }: Props) => {
     };
   }, []);
 
-  const gateRequired = cfg.licenseGateEnabled && cfg.gatedRoutes.includes(location.pathname);
+  const gateRequired = isGateRequiredForRoute(location.pathname);
   const blocked = isCurrentlyBlocked(name);
 
   if (blocked.blocked) return <BlockedOverlay />;
