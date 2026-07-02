@@ -89,7 +89,7 @@ const AppRoutes = () => (
         <Route path="/english-typing-test" element={<EnglishTypingTest />} />
         <Route path="/wpm-calculator" element={<WpmCalculator />} />
         <Route path="/accuracy-calculator" element={<AccuracyCalculator />} />
-        <Route path="/lessons" element={<LicenseGate><Lessons /></LicenseGate>} />
+        <Route path="/lessons" element={<Lessons />} />
         <Route path="/practice" element={<PracticeMode />} />
         <Route path="/exam" element={<ExamMode />} />
         <Route path="/exam-history" element={<ExamHistory />} />
