@@ -44,8 +44,11 @@ const defaultConfig: AccessConfig = {
   comingSoonMessage: 'This section is coming soon. Stay tuned!',
 
   licenseGateEnabled: false,
+  globalLock: false,
+  lockVersion: 1,
   licenseKeys: ['vinkal9305040597@890'],
   gatedRoutes: ['/fast-track', '/lessons'],
+  publicRoutes: ['/', '/admin', '/admin/dashboard', '/blog', '/about', '/contact', '/privacy-policy', '/terms-and-conditions', '/disclaimer', '/pricing', '/checkout', '/profile', '/seo-status'],
   gateContent: {
     heading: '🔐 Premium Access Required',
     paragraph:
