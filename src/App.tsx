@@ -12,7 +12,7 @@ import { SidebarProvider } from "./components/ui/sidebar";
 import { AppSidebar } from "./components/AppSidebar";
 import ScrollToTop from "./components/ScrollToTop";
 import GlobalAccessGuard from "./components/GlobalAccessGuard";
-import LicenseGate from "./components/LicenseGate";
+
 import { useEffect } from "react";
 import { trackPageView } from "./lib/analyticsTracker";
 import { useLocation } from "react-router-dom";
