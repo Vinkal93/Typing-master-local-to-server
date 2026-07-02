@@ -65,6 +65,7 @@ export const AccessControlManager = () => {
   const [newComingSoon, setNewComingSoon] = useState('');
   const [manualBlockDevice, setManualBlockDevice] = useState('');
   const [manualBlockName, setManualBlockName] = useState('');
+  const [newKey, setNewKey] = useState('');
 
   // Firestore listeners
   useEffect(() => {
