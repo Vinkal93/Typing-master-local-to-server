@@ -14,6 +14,7 @@ import {
   upsertGateVisitor,
   validateLicense,
   isCurrentlyBlocked,
+  isGateRequiredForRoute,
 } from "@/lib/accessControl";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
