@@ -1,10 +1,13 @@
-// Access control: license gate, maintenance mode, coming-soon pages, blocked visitors
-// All persisted client-side in localStorage. Admin edits everything from AccessControlManager.
+// Access control: license gate, maintenance mode, coming-soon pages, blocked visitors.
+// Config is synced globally via Lovable Cloud (real-time). Grants + visitors + device
+// fingerprint remain per-device in localStorage.
+import { supabase } from "@/integrations/supabase/client";
 
 const CFG_KEY = 'tm_access_control_v1';
 const VISITORS_KEY = 'tm_gate_visitors_v1';
 const GRANTS_KEY = 'tm_gate_grants_v1';
 const DEVICE_KEY = 'tm_device_fingerprint_v1';
+const CLOUD_ROW_ID = 'global';
 
 export interface GateContent {
   heading: string;
@@ -64,7 +67,9 @@ const defaultConfig: AccessConfig = {
   blockedMessage: 'Your access to this website has been restricted by the administrator.',
 };
 
-export const getAccessConfig = (): AccessConfig => {
+let cachedConfig: AccessConfig | null = null;
+
+const readLocal = (): AccessConfig => {
   try {
     const raw = localStorage.getItem(CFG_KEY);
     if (raw) return { ...defaultConfig, ...JSON.parse(raw) };
@@ -72,9 +77,55 @@ export const getAccessConfig = (): AccessConfig => {
   return { ...defaultConfig };
 };
 
+export const getAccessConfig = (): AccessConfig => {
+  if (cachedConfig) return cachedConfig;
+  cachedConfig = readLocal();
+  return cachedConfig;
+};
+
+const applyIncoming = (data: any) => {
+  const merged: AccessConfig = { ...defaultConfig, ...(data || {}) };
+  cachedConfig = merged;
+  localStorage.setItem(CFG_KEY, JSON.stringify(merged));
+  window.dispatchEvent(new Event('tm-access-updated'));
+};
+
 export const saveAccessConfig = (cfg: AccessConfig) => {
+  cachedConfig = cfg;
   localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
   window.dispatchEvent(new Event('tm-access-updated'));
+  // Push to cloud (fire-and-forget)
+  (supabase as any)
+    .from('access_config')
+    .upsert({ id: CLOUD_ROW_ID, data: cfg, updated_at: new Date().toISOString() })
+    .then(({ error }: any) => { if (error) console.warn('[accessControl] cloud save failed:', error.message); });
+};
+
+// Initialize: fetch latest config from cloud + subscribe to realtime changes.
+export const initAccessControlSync = async () => {
+  try {
+    const { data, error } = await (supabase as any).from('access_config').select('data').eq('id', CLOUD_ROW_ID).maybeSingle();
+    if (!error && data && data.data && Object.keys(data.data).length > 0) {
+      applyIncoming(data.data);
+    } else if (!error && (!data || Object.keys(data?.data || {}).length === 0)) {
+      // Seed cloud with current local (or default) config so all devices align
+      const seed = readLocal();
+      await (supabase as any).from('access_config').upsert({ id: CLOUD_ROW_ID, data: seed, updated_at: new Date().toISOString() });
+      applyIncoming(seed);
+    }
+  } catch (e) {
+    console.warn('[accessControl] initial cloud fetch failed', e);
+  }
+
+  const channel = (supabase as any)
+    .channel('access_config_sync')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'access_config', filter: `id=eq.${CLOUD_ROW_ID}` }, (payload: any) => {
+      const next = payload.new?.data;
+      if (next) applyIncoming(next);
+    })
+    .subscribe();
+
+  return () => { (supabase as any).removeChannel(channel); };
 };
 
 // ── Device fingerprint (browser-only pseudo "MAC address") ──
