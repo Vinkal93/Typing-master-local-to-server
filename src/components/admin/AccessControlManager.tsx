@@ -58,6 +58,18 @@ export const AccessControlManager = () => {
             <CardDescription>When ON, gated routes require a name + valid license key. When OFF, everyone can access freely.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-3 border-2 border-destructive/50 bg-destructive/5 rounded-lg">
+              <div>
+                <Label className="font-semibold flex items-center gap-2"><Lock className="h-4 w-4 text-destructive" /> GLOBAL LOCK (whole site)</Label>
+                <p className="text-xs text-muted-foreground">When ON, every non-public page requires a license key. Overrides everything.</p>
+              </div>
+              <Switch checked={cfg.globalLock} onCheckedChange={v => { const n = { ...cfg, globalLock: v, lockVersion: (cfg.lockVersion || 1) + 1 }; save(n); }} />
+            </div>
+
+            <Button variant="destructive" size="sm" onClick={() => { revokeAllGrants(); setCfg(getAccessConfig()); toast({ title: 'All unlocks revoked', description: 'Every device must re-enter the license key.' }); }}>
+              <Lock className="h-3 w-3 mr-1" /> Lock Now — Revoke All Previous Unlocks
+            </Button>
+
             <div className="flex items-center justify-between p-3 border border-border rounded-lg">
               <div>
                 <Label className="font-semibold">Require License Key</Label>
