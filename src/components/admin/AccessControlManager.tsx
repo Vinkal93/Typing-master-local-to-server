@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Plus, Trash2, Save, Ban, Wrench, Rocket, KeyRound, 
-  ShieldAlert, Fingerprint, User, Lock, Copy, RefreshCw, Check, CheckCircle, XCircle 
+  ShieldAlert, Fingerprint, User, Lock as LockIcon, Copy, RefreshCw, Check, CheckCircle, XCircle 
 } from "lucide-react";
 import {
   AccessConfig, getAccessConfig, saveAccessConfig,
@@ -255,7 +255,7 @@ export const AccessControlManager = () => {
           <KeyRound className="h-3.5 w-3.5 text-primary" /> Firestore Licenses ({licenses.length})
         </TabsTrigger>
         <TabsTrigger value="license-settings" className="flex items-center gap-1.5 py-2 px-3 text-xs md:text-sm">
-          <Lock className="h-3.5 w-3.5 text-amber-500" /> Gate Config
+          <LockIcon className="h-3.5 w-3.5 text-amber-500" /> Gate Config
         </TabsTrigger>
         <TabsTrigger value="site" className="flex items-center gap-1.5 py-2 px-3 text-xs md:text-sm">
           <Wrench className="h-3.5 w-3.5" /> Maintenance & Coming Soon
@@ -523,7 +523,7 @@ export const AccessControlManager = () => {
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between p-4 border border-destructive/30 bg-destructive/5 rounded-lg">
               <div>
-                <Label className="font-bold flex items-center gap-2 text-foreground"><Lock className="h-4 w-4 text-destructive" /> Global Gate Lock (Whole Website)</Label>
+                <Label className="font-bold flex items-center gap-2 text-foreground"><LockIcon className="h-4 w-4 text-destructive" /> Global Gate Lock (Whole Website)</Label>
                 <p className="text-xs text-muted-foreground mt-0.5">When ON, all pages except public ones are locked and require a license key. Overrides tab config.</p>
               </div>
               <Switch checked={cfg.globalLock} onCheckedChange={v => { const n = { ...cfg, globalLock: v, lockVersion: (cfg.lockVersion || 1) + 1 }; save(n); }} />

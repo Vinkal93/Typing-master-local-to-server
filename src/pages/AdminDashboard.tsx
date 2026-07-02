@@ -19,7 +19,7 @@ import {
   FileText, LogOut, Shield, Activity, MousePointer, ArrowUpRight,
   PenTool, Plus, Save, Trash2, Search, CheckCircle, AlertCircle,
   GraduationCap, Crown, Ban, UserCheck, DollarSign, Settings,
-  CreditCard, Clock, Mail, Key, RefreshCw
+  CreditCard, Clock, Mail, Key, RefreshCw, Lock as LockIcon
 } from "lucide-react";
 import {
   getAnalyticsData, getLiveVisitors, getTodayVisits,
@@ -231,7 +231,7 @@ const AdminDashboard = () => {
                   ? 'bg-amber-500/10 text-amber-500' 
                   : 'bg-neutral-500/20 text-muted-foreground'
               }`}>
-                <Lock className="h-3 w-3 text-amber-500/80" />
+                <LockIcon className="h-3 w-3 text-amber-500/80" />
                 {accessCfg.globalLock ? 'Strict Lock' : accessCfg.licenseGateEnabled ? 'Gate Lock' : 'Open'}
               </Badge>
             </div>

@@ -15,7 +15,7 @@ export interface InvoiceParty {
 const BRAND = {
   name: 'Typing Master by Vinkal Prajapati',
   tagline: 'Free Online Typing Master Tool',
-  website: 'https://vinkaltyping.lovable.app',
+  website: 'https://typingmaster2.vercel.app',
   email: 'support@vinkaltyping.com',
   address: 'India',
   gstin: 'N/A',

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Lock, KeyRound, ShieldCheck, User, Fingerprint, AlertTriangle, Loader2 } from "lucide-react";
+import { Lock as LockIcon, KeyRound, ShieldCheck, User, Fingerprint, AlertTriangle, Loader2 } from "lucide-react";
 import {
   getAccessConfig,
   getDeviceFingerprint,
@@ -172,7 +172,7 @@ const LicenseGate = ({ children }: Props) => {
                     <span className="text-muted-foreground text-xs">Awaiting Activation for:</span>
                     <span className="font-semibold text-foreground">{name}</span>
                   </div>
-                  <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5"><Lock className="h-3 w-3 mr-1 text-primary" /> Locked</Badge>
+                  <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5"><LockIcon className="h-3 w-3 mr-1 text-primary" /> Locked</Badge>
                 </div>
                 
                 <div className="space-y-2">

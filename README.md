@@ -1,73 +1,55 @@
-# Welcome to your Lovable project
+# Typing Masterclass
 
-## Project info
+A premium, full-featured online typing practice and test platform created by Vinkal Prajapati. Test your typing speed (WPM), track accuracy, and learn touch typing through structured courses, exams, and interactive games in both English and Hindi.
 
-**URL**: https://lovable.dev/projects/7c9b509b-baf9-41d7-8851-d8e8b665c059
+## Features
 
-## How can I edit this code?
+- **Typing Course & Lessons**: Structured levels for beginners, intermediate, and advanced typists.
+- **Fast Track Engine**: High-performance engine designed to accelerate typing reflexes.
+- **Exam Mode**: Simulate real-world typing tests (including CPCT mocks) with advanced scoring.
+- **Smart Practice**: Tracks missed keys and generates custom drills to target weak spots.
+- **Analytics & History**: Detailed error analysis, finger heatmaps, and full practice/test history.
+- **Secure Licensing**: Administrator-controlled monthly licensing gates to unlock premium content.
+- **Live Admin Control Room**: Redesigned administrative panel featuring real-time visitors logging, custom route gating, and Firestore key generator.
 
-There are several ways of editing your application.
+## Technologies Used
 
-**Use Lovable**
+- **Frontend**: React, Vite, TypeScript, Tailwind CSS, shadcn-ui
+- **Database & Sync**: Firebase Firestore (Real-time Config & License validation), LocalStorage caching
+- **Analytics**: Local visitor event tracking & Live device sync
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/7c9b509b-baf9-41d7-8851-d8e8b665c059) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+Follow these steps to run the application locally:
 
-**Use your preferred IDE**
+### Prerequisites
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- Node.js (v18 or higher)
+- npm or bun
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Installation
 
-Follow these steps:
+1. Install the dependencies:
+   ```bash
+   npm install
+   ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+2. Configure environment variables. Create a `.env` file in the root directory and add your Firebase credentials:
+   ```env
+   VITE_FIREBASE_API_KEY="your-api-key"
+   VITE_FIREBASE_AUTH_DOMAIN="your-auth-domain"
+   VITE_FIREBASE_PROJECT_ID="your-project-id"
+   VITE_FIREBASE_STORAGE_BUCKET="your-storage-bucket"
+   VITE_FIREBASE_MESSAGING_SENDER_ID="your-sender-id"
+   VITE_FIREBASE_APP_ID="your-app-id"
+   VITE_FIREBASE_MEASUREMENT_ID="your-measurement-id"
+   ```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+3. Start the local development server:
+   ```bash
+   npm run dev
+   ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+## License & Branding
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/7c9b509b-baf9-41d7-8851-d8e8b665c059) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Owned and managed by **Vinkal Prajapati**. All rights reserved.
