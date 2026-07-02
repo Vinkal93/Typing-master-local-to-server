@@ -8,11 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Save, Ban, Wrench, Rocket, KeyRound, ShieldAlert, Fingerprint, User } from "lucide-react";
+import { Plus, Trash2, Save, Ban, Wrench, Rocket, KeyRound, ShieldAlert, Fingerprint, User, Lock } from "lucide-react";
 import {
   AccessConfig, getAccessConfig, saveAccessConfig,
   getGateVisitors, GateVisitor, removeGateVisitor,
-  blockDevice, unblockDevice, blockName, unblockName,
+  blockDevice, unblockDevice, blockName, unblockName, revokeAllGrants,
 } from "@/lib/accessControl";
 
 const ROUTE_OPTIONS = [
