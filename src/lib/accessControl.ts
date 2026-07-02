@@ -1,10 +1,13 @@
-// Access control: license gate, maintenance mode, coming-soon pages, blocked visitors
-// All persisted client-side in localStorage. Admin edits everything from AccessControlManager.
+// Access control: license gate, maintenance mode, coming-soon pages, blocked visitors.
+// Config is synced globally via Lovable Cloud (real-time). Grants + visitors + device
+// fingerprint remain per-device in localStorage.
+import { supabase } from "@/integrations/supabase/client";
 
 const CFG_KEY = 'tm_access_control_v1';
 const VISITORS_KEY = 'tm_gate_visitors_v1';
 const GRANTS_KEY = 'tm_gate_grants_v1';
 const DEVICE_KEY = 'tm_device_fingerprint_v1';
+const CLOUD_ROW_ID = 'global';
 
 export interface GateContent {
   heading: string;
