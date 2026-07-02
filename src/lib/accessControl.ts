@@ -153,20 +153,43 @@ export const removeGateVisitor = (deviceId: string, name: string) => {
   localStorage.setItem(VISITORS_KEY, JSON.stringify(list));
 };
 
-// ── Per-route unlock grants for this device ──
-type Grants = Record<string, { name: string; licenseUsed: string; grantedAt: number }>;
+// ── Per-route unlock grants for this device (version-scoped) ──
+type Grant = { name: string; licenseUsed: string; grantedAt: number; version: number };
+type Grants = Record<string, Grant>;
 const readGrants = (): Grants => {
   try { return JSON.parse(localStorage.getItem(GRANTS_KEY) || '{}'); } catch { return {}; }
 };
 const writeGrants = (g: Grants) => localStorage.setItem(GRANTS_KEY, JSON.stringify(g));
 
-export const isRouteUnlocked = (route: string): boolean => !!readGrants()[route];
+export const isRouteUnlocked = (route: string): boolean => {
+  const cfg = getAccessConfig();
+  const g = readGrants()[route];
+  return !!g && g.version === (cfg.lockVersion || 1);
+};
 export const grantRouteAccess = (route: string, name: string, licenseUsed: string) => {
+  const cfg = getAccessConfig();
   const g = readGrants();
-  g[route] = { name, licenseUsed, grantedAt: Date.now() };
+  g[route] = { name, licenseUsed, grantedAt: Date.now(), version: cfg.lockVersion || 1 };
   writeGrants(g);
 };
-export const revokeAllGrants = () => localStorage.removeItem(GRANTS_KEY);
+export const revokeAllGrants = () => {
+  localStorage.removeItem(GRANTS_KEY);
+  const cfg = getAccessConfig();
+  saveAccessConfig({ ...cfg, lockVersion: (cfg.lockVersion || 1) + 1 });
+};
+
+// Is the gate required for a specific route based on current config?
+export const isGateRequiredForRoute = (pathname: string): boolean => {
+  const cfg = getAccessConfig();
+  if (pathname.startsWith('/admin')) return false;
+  if (cfg.globalLock) {
+    if (cfg.publicRoutes.includes(pathname)) return false;
+    return true;
+  }
+  if (cfg.licenseGateEnabled && cfg.gatedRoutes.includes(pathname)) return true;
+  return false;
+};
+
 
 // ── Blocked check for current device / name ──
 export const isCurrentlyBlocked = (name?: string): { blocked: boolean; reason?: string } => {
