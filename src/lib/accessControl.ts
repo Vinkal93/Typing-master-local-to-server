@@ -24,8 +24,11 @@ export interface AccessConfig {
 
   // License gate for FastTrack / Lessons (and any registered gated route)
   licenseGateEnabled: boolean;
+  globalLock: boolean; // when true, EVERY non-public route requires license
+  lockVersion: number; // bumping this invalidates all previous grants
   licenseKeys: string[]; // any of these unlocks
   gatedRoutes: string[]; // pathnames guarded
+  publicRoutes: string[]; // never gated even under global lock
   gateContent: GateContent;
 
   // Blocked users/devices
@@ -41,8 +44,11 @@ const defaultConfig: AccessConfig = {
   comingSoonMessage: 'This section is coming soon. Stay tuned!',
 
   licenseGateEnabled: false,
+  globalLock: false,
+  lockVersion: 1,
   licenseKeys: ['vinkal9305040597@890'],
   gatedRoutes: ['/fast-track', '/lessons'],
+  publicRoutes: ['/', '/admin', '/admin/dashboard', '/blog', '/about', '/contact', '/privacy-policy', '/terms-and-conditions', '/disclaimer', '/pricing', '/checkout', '/profile', '/seo-status'],
   gateContent: {
     heading: '🔐 Premium Access Required',
     paragraph:
@@ -147,20 +153,43 @@ export const removeGateVisitor = (deviceId: string, name: string) => {
   localStorage.setItem(VISITORS_KEY, JSON.stringify(list));
 };
 
-// ── Per-route unlock grants for this device ──
-type Grants = Record<string, { name: string; licenseUsed: string; grantedAt: number }>;
+// ── Per-route unlock grants for this device (version-scoped) ──
+type Grant = { name: string; licenseUsed: string; grantedAt: number; version: number };
+type Grants = Record<string, Grant>;
 const readGrants = (): Grants => {
   try { return JSON.parse(localStorage.getItem(GRANTS_KEY) || '{}'); } catch { return {}; }
 };
 const writeGrants = (g: Grants) => localStorage.setItem(GRANTS_KEY, JSON.stringify(g));
 
-export const isRouteUnlocked = (route: string): boolean => !!readGrants()[route];
+export const isRouteUnlocked = (route: string): boolean => {
+  const cfg = getAccessConfig();
+  const g = readGrants()[route];
+  return !!g && g.version === (cfg.lockVersion || 1);
+};
 export const grantRouteAccess = (route: string, name: string, licenseUsed: string) => {
+  const cfg = getAccessConfig();
   const g = readGrants();
-  g[route] = { name, licenseUsed, grantedAt: Date.now() };
+  g[route] = { name, licenseUsed, grantedAt: Date.now(), version: cfg.lockVersion || 1 };
   writeGrants(g);
 };
-export const revokeAllGrants = () => localStorage.removeItem(GRANTS_KEY);
+export const revokeAllGrants = () => {
+  localStorage.removeItem(GRANTS_KEY);
+  const cfg = getAccessConfig();
+  saveAccessConfig({ ...cfg, lockVersion: (cfg.lockVersion || 1) + 1 });
+};
+
+// Is the gate required for a specific route based on current config?
+export const isGateRequiredForRoute = (pathname: string): boolean => {
+  const cfg = getAccessConfig();
+  if (pathname.startsWith('/admin')) return false;
+  if (cfg.globalLock) {
+    if (cfg.publicRoutes.includes(pathname)) return false;
+    return true;
+  }
+  if (cfg.licenseGateEnabled && cfg.gatedRoutes.includes(pathname)) return true;
+  return false;
+};
+
 
 // ── Blocked check for current device / name ──
 export const isCurrentlyBlocked = (name?: string): { blocked: boolean; reason?: string } => {

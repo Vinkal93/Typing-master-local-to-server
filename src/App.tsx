@@ -12,7 +12,7 @@ import { SidebarProvider } from "./components/ui/sidebar";
 import { AppSidebar } from "./components/AppSidebar";
 import ScrollToTop from "./components/ScrollToTop";
 import GlobalAccessGuard from "./components/GlobalAccessGuard";
-import LicenseGate from "./components/LicenseGate";
+
 import { useEffect } from "react";
 import { trackPageView } from "./lib/analyticsTracker";
 import { useLocation } from "react-router-dom";
@@ -89,7 +89,7 @@ const AppRoutes = () => (
         <Route path="/english-typing-test" element={<EnglishTypingTest />} />
         <Route path="/wpm-calculator" element={<WpmCalculator />} />
         <Route path="/accuracy-calculator" element={<AccuracyCalculator />} />
-        <Route path="/lessons" element={<LicenseGate><Lessons /></LicenseGate>} />
+        <Route path="/lessons" element={<Lessons />} />
         <Route path="/practice" element={<PracticeMode />} />
         <Route path="/exam" element={<ExamMode />} />
         <Route path="/exam-history" element={<ExamHistory />} />
@@ -98,7 +98,7 @@ const AppRoutes = () => (
         <Route path="/full-history" element={<FullHistory />} />
         <Route path="/keyboard-guide" element={<KeyboardGuide />} />
         <Route path="/about-developer" element={<AboutDeveloper />} />
-        <Route path="/fast-track" element={<LicenseGate><FastTrack /></LicenseGate>} />
+        <Route path="/fast-track" element={<FastTrack />} />
         <Route path="/smart-practice" element={<SmartPractice />} />
         <Route path="/finger-heatmap" element={<FingerHeatmap />} />
         <Route path="/achievements" element={<Achievements />} />
