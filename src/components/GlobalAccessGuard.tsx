@@ -7,7 +7,8 @@ import {
   isRouteUnlocked,
   getDeviceFingerprint,
   upsertGateVisitor,
-  checkActiveLicenseLive
+  checkActiveLicenseLive,
+  AccessConfig
 } from "@/lib/accessControl";
 import BlockedOverlay from "@/components/BlockedOverlay";
 import LicenseGate from "@/components/LicenseGate";
@@ -25,29 +26,33 @@ const FullPageMessage = ({ icon, title, message }: { icon: ReactNode; title: str
 
 const GlobalAccessGuard = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
-  const [cfg, setCfg] = useState(getAccessConfig());
-  const [, setTick] = useState(0);
+  const [cfg, setCfg] = useState<AccessConfig>(getAccessConfig());
+  const [tick, setTick] = useState(0);
 
+  // Listen for real-time config changes from Firestore sync
   useEffect(() => {
-    const r = () => { setCfg(getAccessConfig()); setTick(t => t + 1); };
-    window.addEventListener('tm-access-updated', r);
-    window.addEventListener('storage', r);
+    const refresh = () => { 
+      setCfg(getAccessConfig()); 
+      setTick(t => t + 1); 
+    };
+    window.addEventListener('tm-access-updated', refresh);
+    window.addEventListener('storage', refresh);
     return () => {
-      window.removeEventListener('tm-access-updated', r);
-      window.removeEventListener('storage', r);
+      window.removeEventListener('tm-access-updated', refresh);
+      window.removeEventListener('storage', refresh);
     };
   }, []);
 
   const isAdminRoute = location.pathname.startsWith('/admin');
 
-  // Visitor Tracking & Live Background License Validation
+  // Visitor Tracking & Background License Validation on every page change
   useEffect(() => {
     if (isAdminRoute) return;
     
-    // 1. Run live check on active license
+    // Run background license check (will revoke if admin disabled the key)
     checkActiveLicenseLive();
     
-    // 2. Log active page session to Firestore for live admin panel tracking
+    // Log visitor to Firestore for admin live view
     const savedName = localStorage.getItem('tm_gate_name') || 'Guest';
     const deviceId = getDeviceFingerprint();
     const unlocked = isRouteUnlocked(location.pathname);
@@ -58,10 +63,13 @@ const GlobalAccessGuard = ({ children }: { children: ReactNode }) => {
       route: location.pathname, 
       unlocked 
     });
-  }, [location.pathname, isAdminRoute]);
+  }, [location.pathname, isAdminRoute, tick]);
 
+  // Re-derive state on every render / tick change for instant reactivity
   const savedName = typeof window !== 'undefined' ? (localStorage.getItem('tm_gate_name') || undefined) : undefined;
   const blocked = isCurrentlyBlocked(savedName);
+  const gateRequired = isGateRequiredForRoute(location.pathname);
+  const unlocked = isRouteUnlocked(location.pathname);
   
   if (blocked.blocked && !isAdminRoute) return <BlockedOverlay />;
 
@@ -73,8 +81,8 @@ const GlobalAccessGuard = ({ children }: { children: ReactNode }) => {
     return <FullPageMessage icon={<Rocket className="h-8 w-8 text-primary" />} title="Coming Soon" message={cfg.comingSoonMessage} />;
   }
 
-  // License gate: enforced globally so admin toggle instantly locks pages
-  if (isGateRequiredForRoute(location.pathname) && !isRouteUnlocked(location.pathname)) {
+  // License gate: when admin enables gate, user must enter name + valid key
+  if (gateRequired && !unlocked) {
     return <LicenseGate>{children}</LicenseGate>;
   }
 
